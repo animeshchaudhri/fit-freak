@@ -43,7 +43,7 @@ export default function ProfilePage() {
         <Card className="p-6 bg-gray-800/30 border-0">
           <h3 className="font-semibold mb-4">Current Streak</h3>
           <div className="text-3xl font-bold mb-2">7 Days</div>
-          <p className="text-sm text-gray-400">Keep going! You're doing great!</p>
+          <p className="text-sm text-gray-400">Keep going You re doing great </p>
         </Card>
       </div>
 

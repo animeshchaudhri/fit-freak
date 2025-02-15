@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlaceholderImage } from "@/components/ui/placeholder-image"
-import { Play, Clock, Flame, ChevronRight } from "lucide-react"
+import { Play, Clock, Flame } from "lucide-react"
 
 const workouts = [
   {

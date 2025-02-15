@@ -1,6 +1,6 @@
 import { ActivityTracker } from "@/components/activity/activity-tracker"
 import { Card } from "@/components/ui/card"
-import { LineChart, BarChart, Activity, Dumbbell, Timer } from "lucide-react"
+import { Activity, Dumbbell, Timer } from "lucide-react"
 
 export default function ActivityPage() {
   return (

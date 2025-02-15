@@ -1,4 +1,5 @@
 import { Challenges } from "@/components/challenges/challenges"
+import Image from "next/image"
 
 export default function ChallengesPage() {
   return (
@@ -19,10 +20,12 @@ export default function ChallengesPage() {
 
       {/* Featured Challenge */}
       <div className="relative h-[200px] lg:h-[300px] rounded-2xl overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&auto=format&fit=crop&q=60"
           alt="Featured Challenge"
           className="w-full h-full object-cover"
+          width={800}
+          height={300}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center p-8">
           <div className="max-w-xl">

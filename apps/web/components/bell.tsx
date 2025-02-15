@@ -1,4 +1,4 @@
-import type { LightbulbIcon as LucideProps } from "lucide-react"
+import { LucideProps } from "lucide-react"
 
 export function Bell(props: LucideProps) {
   return (

@@ -133,7 +133,7 @@ const steps = [
 
 export function OnboardingFlow() {
   const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState<Record<string, any>>({})
+  const [formData, setFormData] = useState<Record<string, string | number | string[]>>({})
   const { completeOnboarding } = useAuth()
 
   const handleNext = () => {
@@ -141,7 +141,7 @@ export function OnboardingFlow() {
       setCurrentStep(currentStep + 1)
     } else {
       // Calculate BMI and other metrics
-      const bmi = formData.weight / Math.pow(formData.height / 100, 2)
+      const bmi = Number(formData.weight) / Math.pow(Number(formData.height) / 100, 2)
       const userData = {
         ...formData,
         bmi: bmi.toFixed(1),
@@ -155,9 +155,17 @@ export function OnboardingFlow() {
 
   const isStepValid = () => {
     const currentFields = steps[currentStep].fields
-    return currentFields.every(field => 
-      !field.required || (formData[field.key] && formData[field.key].length > 0)
-    )
+    return currentFields.every(field => {
+      const value = formData[field.key]
+      if (!field.required) return true
+      if (!value) return false
+      
+      if (typeof value === 'string') return value.length > 0
+      if (Array.isArray(value)) return value.length > 0
+      if (typeof value === 'number') return true
+      
+      return false
+    })
   }
 
   const step = steps[currentStep]
@@ -210,9 +218,9 @@ export function OnboardingFlow() {
                       <label key={option} className="flex items-center space-x-2">
                         <input
                           type="checkbox"
-                          checked={formData[field.key]?.includes(option)}
+                          checked={Array.isArray(formData[field.key]) && (formData[field.key] as string[]).includes(option)}
                           onChange={(e) => {
-                            const current = formData[field.key] || []
+                            const current = Array.isArray(formData[field.key]) ? formData[field.key] as string[] : []
                             const updated = e.target.checked
                               ? [...current, option]
                               : current.filter((item: string) => item !== option)
@@ -228,7 +236,6 @@ export function OnboardingFlow() {
                   <textarea
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2"
                     rows={3}
-                    placeholder={field.placeholder}
                     onChange={(e) =>
                       setFormData({ ...formData, [field.key]: e.target.value })
                     }
@@ -241,7 +248,7 @@ export function OnboardingFlow() {
                       setFormData({ ...formData, [field.key]: e.target.value })
                     }
                     value={formData[field.key] || ""}
-                    placeholder={field.placeholder}
+                    placeholder={""}
                   />
                 )}
               </div>

@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 interface AuthContextType {
-  user: any
+  user: User | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   isLoading: boolean

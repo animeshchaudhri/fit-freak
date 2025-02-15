@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+
 import { MobileNav } from "@/components/navigation/mobile-nav"
 import { DesktopSidebar } from "@/components/navigation/desktop-sidebar"
 import { useAuth } from "@/components/auth/auth-provider"
