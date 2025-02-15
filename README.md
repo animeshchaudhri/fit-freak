@@ -1,6 +1,9 @@
 # Fit Freak
 
-A modern fitness tracking platform built with the PRRTTS stack:
+A modern fitness tracking platform with web, android and desktop applications 
+
+This project is using what I'm calling the "PRRTTES" stack 
+
 - **P**ostgreSQL for database
 - **R**ust for desktop backend
 - **R**eact (Next.js) for frontend
@@ -99,6 +102,7 @@ cd fit-freak
 
 2. Install dependencies:
 ```bash
+cd apps/web
 yarn install
 ```
 
