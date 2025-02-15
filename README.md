@@ -12,7 +12,7 @@ This project is using what I'm calling the "PRRTTES" stack
 - **E**xpress.js for backend
 - **S**equelize for ORM
 
-[Live Demo](https://fit-freak.vercel.app)
+[Live Demo](https://fit-freak-pi.vercel.app/)
 
 ## Platforms
 - 🌐 Web application
