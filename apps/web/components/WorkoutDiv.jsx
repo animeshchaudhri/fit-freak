@@ -1,12 +1,9 @@
 "use client"
-
 import React, { useRef, useState, useEffect } from "react";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 import "./WorkoutDiv.css";
-import { Button } from "../ui/button";
-import { ArrowLeft } from "lucide-react";
 
 async function initializeTFJS() {
   await tf.setBackend("webgl");
@@ -16,7 +13,7 @@ async function initializeTFJS() {
 
 initializeTFJS();
 
-export function WorkoutView({ workout, onComplete }) {
+const WorkoutDiv = () => {
   const repSound = new Audio('../src/assets/ding.wav');
   const exerciseCompleteSound = new Audio('../src/assets/exercise-complete.wav');
   const workoutCompleteSound = new Audio('../src/assets/workout-complete.wav');
@@ -374,102 +371,84 @@ export function WorkoutView({ workout, onComplete }) {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-7xl mx-auto">
-      <div className="w-full bg-[#1a1f2e] rounded-2xl overflow-hidden shadow-2xl">
-        {/* Header Section */}
-        <div 
-          className="w-full px-8 py-6 text-center transition-colors duration-500"
-          style={{ 
-            backgroundColor: workoutComplete ? '#10B981' : exerciseColor,
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-          }}
-        >
+    <div className="workout-container">
+      <div className="workout-card">
+        <div className="workout-header" style={{ backgroundColor: workoutComplete ? '#4CAF50' : exerciseColor }}>
           {workoutComplete ? (
-            <h1 className="text-3xl font-bold text-white mb-2">Workout Complete! 🎉</h1>
+            <h1>Workout Complete! 🎉</h1>
           ) : (
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-white">{exerciseInfo[currentExercise]?.name || "Ready"}</h1>
-              <h2 className="text-lg text-gray-200 opacity-90">Exercise {currentExerciseIndex + 1} of {exercises.length}</h2>
-              <h3 className="text-2xl font-bold text-white">Reps: {reps}/10</h3>
-            </div>
+            <>
+              <h1>{exerciseInfo[currentExercise]?.name || "Ready"}</h1>
+              <h2>Exercise {currentExerciseIndex + 1} of {exercises.length}</h2>
+              <h3>Reps: {reps}/10</h3>
+            </>
           )}
         </div>
-
-        {/* Main Content */}
-        <div className="p-6 flex flex-col md:flex-row gap-6">
-          {/* Video Section */}
-          <div className="w-full md:w-3/5">
-            <div className="flex justify-center mb-6">
+        
+        <div className="workout-body">
+          <div className="video-section">
+            <div className="controls">
               {!isCameraOn && (
                 <button 
-                  onClick={startCamera}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:transform hover:-translate-y-1"
+                  onClick={startCamera} 
+                  className="button start-button"
                 >
-                  Start Workout
+                  Start Workout Now
                 </button>
               )}
+              
               {workoutComplete && (
                 <button 
-                  onClick={resetWorkout}
-                  className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:transform hover:-translate-y-1"
+                  onClick={resetWorkout} 
+                  className="button reset-button"
                 >
                   Start New Workout
                 </button>
               )}
             </div>
-            <div className="relative rounded-xl overflow-hidden shadow-2xl bg-[#141824]">
-              <video ref={videoRef} className="hidden" playsInline />
-              <canvas ref={canvasRef} className="w-full h-auto block rounded-xl" />
+            
+            <div className="video-container">
+              <video 
+                ref={videoRef} 
+                className="video" 
+                style={{ display: 'none' }} 
+                playsInline
+              />
+              <canvas 
+                ref={canvasRef} 
+                className="canvas" 
+              />
             </div>
           </div>
-
-          {/* Info Section */}
-          <div className="w-full md:w-2/5 space-y-6">
-            {/* Instructions */}
-            <div className="bg-[#141824] rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-200 mb-3">Instructions</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {exerciseInfo[currentExercise]?.instructions || "Get ready to start your workout!"}
-              </p>
+          
+          <div className="info-section">
+            <div className="instruction-box">
+              <h3>Instructions</h3>
+              <p>{exerciseInfo[currentExercise]?.instructions || "Get ready to start your workout!"}</p>
             </div>
-
-            {/* Feedback */}
+            
             {isCameraOn && !workoutComplete && (
-              <div className={`bg-[#141824] rounded-xl p-6 shadow-lg border-l-4 ${
-                feedback.type === 'good' ? 'border-emerald-500' :
-                feedback.type === 'warning' ? 'border-yellow-500' :
-                'border-blue-500'
-              }`}>
-                <h3 className="text-lg font-semibold text-gray-200 mb-3">Live Feedback</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{feedback.message}</p>
+              <div className={`feedback-box ${feedback.type}`}>
+                <h3>Live Feedback</h3>
+                <p>{feedback.message}</p>
               </div>
             )}
-
-            {/* Progress */}
+            
             {isCameraOn && !workoutComplete && (
-              <div className="bg-[#141824] rounded-xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-200 mb-4">Workout Progress</h3>
-                <div className="relative flex justify-between items-center">
-                  <div className="absolute h-0.5 bg-gray-700 left-0 right-0 top-1/2 -translate-y-1/2" />
+              <div className="progress-container">
+                <h3>Workout Progress</h3>
+                <div className="exercise-progress">
                   {exercises.map((ex, index) => (
                     <div 
-                      key={ex}
-                      className={`relative z-10 flex flex-col items-center transition-transform duration-300 ${
-                        index === currentExerciseIndex ? 'transform scale-110' : ''
-                      }`}
+                      key={ex} 
+                      className={`exercise-indicator ${index === currentExerciseIndex ? 'active' : index < currentExerciseIndex ? 'completed' : ''}`}
+                      style={{ backgroundColor: index === currentExerciseIndex ? exerciseInfo[ex].color : 
+                               index < currentExerciseIndex ? '#4CAF50' : '#ddd' }}
                     >
-                      <div 
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg transition-colors duration-300`}
-                        style={{
-                          backgroundColor: index === currentExerciseIndex ? exerciseInfo[ex].color :
-                                         index < currentExerciseIndex ? '#10B981' : '#374151'
-                        }}
-                      >
-                        {index + 1}
-                      </div>
-                      <span className="mt-2 text-xs text-gray-400">
+                      {index + 1}
+                      <div className="exercise-title">
                         {exerciseInfo[ex].name.split(' ')[0]}
-                      </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -478,19 +457,18 @@ export function WorkoutView({ workout, onComplete }) {
           </div>
         </div>
       </div>
-
-      {/* Completion Animation */}
+      
       {showCompletionAnimation && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 animate-fade-in">
-          <div className="text-center animate-scale-up">
-            <h1 className="text-5xl font-bold text-white mb-4">🎉 Workout Complete! 🎉</h1>
-            <p className="text-2xl text-gray-300 mb-8">Great job! You've finished all exercises.</p>
+        <div className="completion-animation">
+          <div className="completion-message">
+            <h1>🎉 Workout Complete! 🎉</h1>
+            <p>Great job! You've finished all exercises.</p>
             <button 
               onClick={() => {
                 setShowCompletionAnimation(false);
                 resetWorkout();
-              }}
-              className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:transform hover:-translate-y-1"
+              }} 
+              className="button reset-button"
             >
               Start New Workout
             </button>
@@ -500,3 +478,5 @@ export function WorkoutView({ workout, onComplete }) {
     </div>
   );
 };
+
+export default WorkoutDiv;

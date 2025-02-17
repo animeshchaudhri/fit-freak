@@ -30,7 +30,8 @@
     "pino": "^8.19.0",
     "pino-http": "^9.0.0",
     "sequelize": "^6.37.2",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
