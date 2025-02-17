@@ -5,6 +5,10 @@ export type UserData = {
   email: string;
 };
 
+export type userLoginData = {
+  email: string;
+  onboarding_completed?: boolean;
+};
 export type userDetailedData = {
   id: string;
   user_id: string;

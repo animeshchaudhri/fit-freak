@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation"
 import { routes } from "@/lib/routes"
 import { toast } from "sonner"
 import api from "@/lib/api-client"
-import { motion } from "framer-motion"
-import { ChevronRight, ArrowRight, ArrowLeft } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { ChevronRight, ArrowRight, ArrowLeft, User, Activity, Target } from "lucide-react"
 
 export default function OnboardingPage() {
   const { user, completeOnboarding } = useAuth()
@@ -44,12 +44,12 @@ export default function OnboardingPage() {
   ]
 
   // Handle auth redirect
-  useEffect(() => {
-    if (!user) {
-      router.push(routes.login)
-      return
-    }
-  }, [user, router])
+  const stepIcons = [
+    <User key="user" className="w-6 h-6" />,
+    <Activity key="activity" className="w-6 h-6" />,
+    <Target key="target" className="w-6 h-6" />
+  ]
+
 
   const handleSubmit = async () => {
     if (isSubmitting) return
@@ -65,13 +65,12 @@ export default function OnboardingPage() {
 
       const profileData = {
         ...formData,
-        id: user?.id,
+       
         height: Number(formData.height),
         weight: Number(formData.weight),
         age: Number(formData.age)
       }
 
-      await api.post('/v1/user/create-user', profileData)
       await completeOnboarding(profileData)
       toast.success('Profile completed!')
       router.push(routes.activity)
@@ -146,222 +145,288 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white font-sans">
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gray-800">
-        <motion.div 
-          className="h-full bg-primary"
-          initial={{ width: "0%" }}
-          animate={{ width: `${(step / 3) * 100}%` }}
-          transition={{ duration: 0.3 }}
-        />
-      </div>
-
-      <div className="container max-w-3xl mx-auto px-6 py-12 min-h-screen flex flex-col justify-center">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-10"
-        >
-          {step === 1 && (
-            <div className="space-y-10">
-              <div className="space-y-3">
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary to-blue-600 text-white text-sm">
-                  Step 1 of 3
-                </div>
-                <h1 className="text-5xl font-extrabold">Let's Get to Know You</h1>
-                <p className="text-gray-300">We'll personalize your experience based on the information you provide.</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      {/* Progress Steps */}
+      <div className="fixed top-0 left-0 w-full bg-gray-900/50 backdrop-blur-lg border-b border-gray-800 z-50">
+        <div className="container max-w-6xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            {[1, 2, 3].map((stepNumber) => (
+              <div key={stepNumber} className="flex items-center">
+                <motion.div
+                // @ts-ignore
+                  className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                    step >= stepNumber ? 'bg-primary' : 'bg-gray-800'
+                  } transition-colors duration-300`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {stepNumber === 1 && <User className="w-5 h-5" />}
+                  {stepNumber === 2 && <Activity className="w-5 h-5" />}
+                  {stepNumber === 3 && <Target className="w-5 h-5" />}
+                </motion.div>
+                {stepNumber < 3 && (
+                  <div className={`h-1 w-16 md:w-24 mx-2 ${
+                    step > stepNumber ? 'bg-primary' : 'bg-gray-800'
+                  } transition-colors duration-300`} />
+                )}
               </div>
-              
-              <div className="grid gap-8">
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">First Name</label>
-                  <input
-                    type="text"
-                    value={formData.first_name}
-                    onChange={e => setFormData({...formData, first_name: e.target.value})}
-                    className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                    placeholder="Enter your first name"
-                  />
-                </div>
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">Last Name</label>
-                  <input
-                    type="text"
-                    value={formData.last_name}
-                    onChange={e => setFormData({...formData, last_name: e.target.value})}
-                    className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                    placeholder="Enter your last name"
-                  />
-                </div>
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={e => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-10">
-              <div className="space-y-3">
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary to-blue-600 text-white text-sm">
-                  Step 2 of 3
-                </div>
-                <h1 className="text-5xl font-extrabold">Physical Information</h1>
-                <p className="text-gray-300">Let's gather some information about your body.</p>
-              </div>
-
-              <div className="grid gap-8">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium">Height (cm)</label>
-                    <input
-                      type="number"
-                      value={formData.height}
-                      onChange={e => setFormData({...formData, height: e.target.value})}
-                      className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                      placeholder="Enter your height"
-                      min="50"
-                      max="300"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium">Weight (kg)</label>
-                    <input
-                      type="number"
-                      value={formData.weight}
-                      onChange={e => setFormData({...formData, weight: e.target.value})}
-                      className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                      placeholder="Enter your weight"
-                      min="30"
-                      max="500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium">Age</label>
-                    <input
-                      type="number"
-                      value={formData.age}
-                      onChange={e => setFormData({...formData, age: e.target.value})}
-                      className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                      placeholder="Enter your age"
-                      min="13"
-                      max="120"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium">Gender</label>
-                    <select
-                      value={formData.gender}
-                      onChange={e => setFormData({...formData, gender: e.target.value})}
-                      className="w-full px-6 py-4 rounded-lg bg-gray-800 border-2 border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-400 transition-all"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">Activity Level</label>
-                  <div className="grid gap-4">
-                    {activityLevels.map(level => (
-                      <button
-                        key={level.value}
-                        type="button"
-                        onClick={() => setFormData({...formData, activity_level: level.value})}
-                        className={`w-full p-6 rounded-xl text-left transition-all 
-                          ${formData.activity_level === level.value ? 'bg-gradient-to-r from-primary to-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}
-                        `}
-                      >
-                        <div className="font-semibold">{level.label}</div>
-                        <div className="text-sm text-gray-400">{level.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-10">
-              <div className="space-y-3">
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary to-blue-600 text-white text-sm">
-                  Step 3 of 3
-                </div>
-                <h1 className="text-5xl font-extrabold">Select Your Fitness Goals</h1>
-                <p className="text-gray-300">Let us know your fitness goals to tailor the experience.</p>
-              </div>
-
-              <div className="grid gap-8">
-                {fitnessGoals.map(goal => (
-                  <button
-                    key={goal.id}
-                    type="button"
-                    onClick={() => setFormData({
-                      ...formData,
-                      fitness_goals: formData.fitness_goals.includes(goal.id)
-                        ? formData.fitness_goals.filter(g => g !== goal.id)
-                        : [...formData.fitness_goals, goal.id]
-                    })}
-                    className={`w-full p-6 rounded-xl text-left transition-all 
-                      ${formData.fitness_goals.includes(goal.id) ? 'bg-gradient-to-r from-primary to-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}
-                    `}
-                  >
-                    <div className="font-semibold">{goal.id}</div>
-                    <div className="text-sm text-gray-400">{goal.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        <div className="mt-10 flex justify-between items-center">
-          {step > 1 && (
-            <button
-              type="button"
-              onClick={prevStep}
-              className="flex items-center text-white hover:text-primary transition-all"
-            >
-              <ArrowLeft className="mr-2" />
-              Back
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={nextStep}
-            className="px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary/80 transition-all"
-          >
-            {step === 3 ? (isSubmitting ? 'Submitting...' : 'Complete Setup') : 'Next'}
-            {isSubmitting && (
-              <motion.div
-                className="ml-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ArrowRight className="animate-spin" />
-              </motion.div>
-            )}
-          </button>
+            ))}
+          </div>
         </div>
+      </div>
+  
+      <div className="container max-w-3xl mx-auto px-4 pt-32 pb-12">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+
+            // @ts-ignore
+            className="space-y-8"
+          >
+            {/* Step 1: Personal Info */}
+            {step === 1 && (
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  // @ts-ignore
+                  className="space-y-3"
+                >
+                  <div className="inline-flex px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                    Step 1 of 3
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                    Let's Get Started
+                  </h1>
+                  <p className="text-gray-400 text-lg">Tell us a bit about yourself.</p>
+                </motion.div>
+  
+                <div className="grid gap-6">
+                  {[
+                    { label: "First Name", key: "first_name" },
+                    { label: "Last Name", key: "last_name" },
+                    { label: "Phone Number", key: "phone" }
+                  ].map((field, index) => (
+                    <motion.div
+                      key={field.key}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      // @ts-ignore
+                      className="space-y-2"
+                    >
+                      <label className="text-sm font-medium text-gray-300">{field.label}</label>
+                      <input
+                        type="text"
+                        value={formData[field.key as keyof typeof formData]}
+                        onChange={e => setFormData({...formData, [field.key]: e.target.value})}
+                        className="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
+                        placeholder={`Enter your ${field.label.toLowerCase()}`}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+  
+            {/* Step 2: Physical Details */}
+            {step === 2 && (
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  // @ts-ignore
+                  className="space-y-3"
+                >
+                  <div className="inline-flex px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                    Step 2 of 3
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                    Physical Details
+                  </h1>
+                  <p className="text-gray-400 text-lg">Help us understand your body better.</p>
+                </motion.div>
+  
+                <div className="grid gap-6">
+                  <div className="grid grid-cols-2 gap-6">
+                     {/*  @ts-ignore */}
+                    <motion.div className="space-y-2" whileHover={{ scale: 1.02 }}>
+                      <label className="text-sm font-medium text-gray-300">Height (cm)</label>
+                      <input
+                        type="number"
+                        value={formData.height}
+                        onChange={e => setFormData({...formData, height: e.target.value})}
+                        className="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
+                        placeholder="Height"
+                      />
+                    </motion.div>
+                    {/*  @ts-ignore */}
+                    <motion.div className="space-y-2" whileHover={{ scale: 1.02 }}>
+                      <label className="text-sm font-medium text-gray-300">Weight (kg)</label>
+                      <input
+                        type="number"
+                        value={formData.weight}
+                        onChange={e => setFormData({...formData, weight: e.target.value})}
+                        className="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
+                        placeholder="Weight"
+                      />
+                    </motion.div>
+                  </div>
+  
+                  <div className="grid grid-cols-2 gap-6">
+                     {/*  @ts-ignore */}
+                    <motion.div className="space-y-2" whileHover={{ scale: 1.02 }}>
+                      <label className="text-sm font-medium text-gray-300">Age</label>
+                      <input
+                        type="number"
+                        value={formData.age}
+                        onChange={e => setFormData({...formData, age: e.target.value})}
+                        className="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
+                        placeholder="Age"
+                      />
+                    </motion.div>
+                     {/*  @ts-ignore */}
+                    <motion.div className="space-y-2" whileHover={{ scale: 1.02 }}>
+                      <label className="text-sm font-medium text-gray-300">Gender</label>
+                      <select
+                        value={formData.gender}
+                        onChange={e => setFormData({...formData, gender: e.target.value})}
+                        className="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                      </select>
+                    </motion.div>
+                  </div>
+  
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium text-gray-300">Activity Level</label>
+                    <div className="grid gap-4">
+                      {activityLevels.map((level, index) => (
+                        <motion.button
+                          key={level.value}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          whileHover={{ scale: 1.02 }}
+                           /*  @ts-ignore */
+                          onClick={() => setFormData({...formData, activity_level: level.value})}
+                          className={`w-full p-6 rounded-xl text-left transition-all flex items-center space-x-4
+                            ${formData.activity_level === level.value 
+                              ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/20' 
+                              : 'bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 border border-gray-700'}
+                          `}
+                        >
+                           {/*  @ts-ignore */}
+                          <span className="text-2xl">{level.icon}</span>
+                          <div>
+                            <div className="font-semibold">{level.label}</div>
+                            <div className="text-sm text-gray-400">{level.desc}</div>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+  
+            {/* Step 3: Fitness Goals */}
+            {step === 3 && (
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                   /*  @ts-ignore */
+                  className="space-y-3"
+                >
+                  <div className="inline-flex px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                    Step 3 of 3
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                    Your Goals
+                  </h1>
+                  <p className="text-gray-400 text-lg">Select all that apply to you.</p>
+                </motion.div>
+  
+                <div className="grid gap-4 md:grid-cols-2">
+                  {fitnessGoals.map((goal, index) => (
+                    <motion.button
+                      key={goal.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+
+                        // @ts-ignore
+                      onClick={() => setFormData({
+                        ...formData,
+                        fitness_goals: formData.fitness_goals.includes(goal.id)
+                          ? formData.fitness_goals.filter(g => g !== goal.id)
+                          : [...formData.fitness_goals, goal.id]
+                      })}
+                      className={`p-6 rounded-xl text-left transition-all group relative overflow-hidden
+                        ${formData.fitness_goals.includes(goal.id)
+                          ? 'bg-gradient-to-r from-primary to-blue-600 text-black shadow-lg shadow-primary/20'
+                          : 'bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 border border-gray-700'}
+                      `}
+                    >
+                      <div className="flex items-center space-x-3">
+                          {/* @ts-ignore  */}
+                        <span className="text-2xl">{goal.icon}</span>
+                        <div>
+                          <div className="font-semibold">{goal.id}</div>
+                          <div className="text-sm text-gray-400 group-hover:text-gray-300">{goal.desc}</div>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+  
+        {/* Navigation Buttons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+            //  @ts-ignore *
+          className="mt-12 flex justify-between items-center"
+        >
+          {step > 1 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              //  @ts-ignore 
+              onClick={() => setStep(step - 1)}
+              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors group"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span>Back</span>
+            </motion.button>
+          )}
+  
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+              // @ts-ignore 
+            onClick={step === 3 ? handleSubmit : () => setStep(step + 1)}
+            className="ml-auto flex items-center space-x-2 px-8 py-4 bg-primary rounded-xl hover:bg-primary/90 transition-colors group"
+            disabled={isSubmitting}
+          >
+            <span className="text-black">{step === 3 ? (isSubmitting ? 'Submitting...' : 'Complete Setup') : 'Continue'}</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-black" />
+          </motion.button>
+        </motion.div>
       </div>
     </div>
   )

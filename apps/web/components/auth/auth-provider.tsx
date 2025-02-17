@@ -8,6 +8,8 @@ import { toast } from "sonner"
 import api from '@/lib/api-client'
 import { clearTokens, getAccessToken, saveTokens } from "@/utils/tokenManager"
 import { getNewAccessToken, isTokenExpired } from "@/utils/jwtUtils"
+import { useUserStore } from "@/store/userstore"
+import { clear } from "console"
 
 interface AuthContextType {
   user: User | null
@@ -28,6 +30,9 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const setUserr = useUserStore((state) => state.setUserr)
+  const clearUserr = useUserStore((state) => state.clearUserr)
+
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
@@ -37,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const accessToken = getAccessToken()
         if (accessToken) {
           if (isTokenExpired(accessToken)) {
+            console.log('Access token expired. Refreshing...')
             const newAccessToken = await getNewAccessToken()
             if (!newAccessToken) {
               clearTokens()
@@ -45,11 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               return
             }
           }
-          
-          const { data } = await api.get('/v1/user/details')
-          setUser(data.data)
+            const response = await api.get('/v1/user/user-details')
+            setUserr(response.data.data)
+            toast.success('Welcome back! You are now logged in.')
+
         }
       } catch (error) {
+        console.error('Error initializing auth:', error)
         clearTokens()
         setUser(null)
       } finally {
@@ -65,47 +73,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await api.post<LoginResponse>('/v1/user/login', { 
         email, 
         password 
-      })
+      });
 
       if (!response.data?.accessToken || !response.data?.refreshToken) {
-        throw new Error('Invalid login response')
+        throw new Error('Invalid login response');
       }
-
-      const { accessToken, refreshToken } = response.data
+      toast.success('Login successful!');
+      const { accessToken, refreshToken } = response.data;
+      saveTokens(accessToken, refreshToken);
       
-      saveTokens(accessToken, refreshToken)
-
+      // Get basic user info
+      const userInfoResponse = await api.get('/v1/user/info');
+      const basicUserInfo = userInfoResponse.data;
+   
       try {
-        const userResponse = await api.get<UserResponse>('/v1/user/user-details')
-        
+        // Get detailed user profile
+        const userResponse = await api.get<UserResponse>('/v1/user/user-details');
+        setUserr(userResponse.data.data)
         if (userResponse.data?.data) {
-          setUser(userResponse.data.data)
-          toast.success('Successfully logged in!')
+          const userDetails = userResponse.data.data;
           
-          if (!userResponse.data.data.onboardingCompleted) {
-            router.push(routes.onboarding)
-          } else {
-            router.push(routes.activity)
-          }
+          // Merge basic user info with details
+          setUser({
+            ...basicUserInfo,
+            ...userDetails,
+            onboardingCompleted: userDetails.onboarding_completed
+          });
+          localStorage.setItem("onboardingCompleted", "true");
+
+          router.push(routes.activity);
         }
       } catch (error: any) {
         if (error.response?.status === 404) {
-          const basicUser: User = {
-            id: response.data.userId,
-            email,
-            onboarding_completed: false
-          }
-          setUser(basicUser)
-          router.push(routes.onboarding)
+          // User hasn't completed onboarding
+          clearUserr();
+          setUser(basicUserInfo);
+          router.push(routes.onboarding);
         } else {
-          throw error
+          throw error;
         }
       }
     } catch (error: any) {
-      clearTokens()
-      setUser(null)
-      const message = error.response?.data?.message || 'Login failed'
-      toast.error(message)
+      clearTokens();
+      setUser(null);
+      clearUserr();
+      const message = error.response?.data?.message || 'Login failed';
+      toast.error(message);
     }
   }
 
@@ -135,6 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = () => {
     clearTokens()
+    localStorage.removeItem("onboardingCompleted");
+    clearUserr();
     setUser(null)
     router.push(routes.login)
   }
@@ -143,7 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await api.post('/v1/user/create-user', {
         ...profileData,
-        id: user?.id
       })
 
       if (response.status === 201 || response.status === 200) {
@@ -154,12 +168,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             onboarding_completed: true
           }
           setUser(updatedUser)
-          
+          const userInfoResponse = await api.get('/v1/user/info');
+          const basicUserInfo = userInfoResponse.data;
           try {
-            const { data } = await api.get<UserResponse>('/v1/user/user-details')
-            if (data?.data) {
-              setUser(data.data)
-            }
+           
+
+            const userResponse = await api.get<UserResponse>('/v1/user/user-details');
+        
+          if (userResponse.data?.data) {
+          const userDetails = userResponse.data.data;
+          setUserr(userDetails)
+          // Merge basic user info with details
+          setUser({
+            ...basicUserInfo,
+            ...userDetails,
+            onboardingCompleted: userDetails.onboarding_completed
+          });
+          localStorage.setItem("onboardingCompleted", "true");
+          
+        }
           } catch (error) {
             console.error('Error refreshing user details:', error)
           }
@@ -175,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -187,4 +215,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-} 
+}

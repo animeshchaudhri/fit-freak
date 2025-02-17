@@ -2,9 +2,10 @@ import express from "express";
 import type { Router } from "express";
 import { validateUserLogin, validateUserRegister } from "../lib/validator";
 import { validateRequest } from "../utils/validateRequest";
-import { getUserDetailsController, loginUserController, registerUserController, userDetailsController } from "../controller/user/user.controller";
+import { getUserDetailsController, loginUserController, registerUserController, userDetailsController, userInfoController } from "../controller/user/user.controller";
 import { validateUserCreate } from "../lib/validator/user/validator";
 import { authenticateUser } from "../middleware/Auth";
+import { userInfo } from "os";
 
 const router: Router = express.Router();
 
@@ -113,6 +114,41 @@ router.post(
  */
 router.post("/login", validateUserLogin, validateRequest, loginUserController);
 
+/**
+ * @swagger
+ * /v1/user/info:
+ *   get:
+ *     summary: Get user information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                     onboardingCompleted:
+ *                       type: boolean
+ *                       description: User's onboarding status
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/info", authenticateUser(), validateRequest, userInfoController);
 
 /**
  * @swagger

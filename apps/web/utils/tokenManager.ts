@@ -5,15 +5,20 @@ const cookies = new Cookies();
 const ACCESS_TOKEN_NAME = 'accessToken';
 const REFRESH_TOKEN_NAME = 'refreshToken';
 
+const MAX_AGE = 60 * 60 * 24 * 30;
 export const saveTokens = (accessToken: string, refreshToken: string): void => {
   cookies.set(ACCESS_TOKEN_NAME, accessToken, {
     path: '/',
     sameSite: 'strict',
+    maxAge: MAX_AGE,
+    domain: window.location.hostname
   });
 
   cookies.set(REFRESH_TOKEN_NAME, refreshToken, {
     path: '/',
     sameSite: 'strict',
+    maxAge: MAX_AGE,
+    domain: window.location.hostname
   });
 };
 

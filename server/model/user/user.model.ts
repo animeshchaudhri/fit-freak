@@ -6,7 +6,7 @@ import Password from "../../schema/user/password.schema";
 import RefreshToken from "../../schema/user/refreshToken.schema";
 import User from "../../schema/user/user.schema";
 import UserDetails from "../../schema/user/user_details.schema";
-import { UserData, userDetailedData } from "../../types/user.types";
+import { UserData, userDetailedData, userLoginData } from "../../types/user.types";
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -112,9 +112,21 @@ export const createUser = async (userData: {
     }
   };
   
-export const getUserbyId = async (id: string): Promise<UserData | null> => {
+export const getUserbyId = async (id: string): Promise<userLoginData | null> => {
   try {
+    logger.info(`Getting user by id: ${id}`);
     const user = await User.findByPk(id);
+    const onboarding = await UserDetails.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+    if (user) {
+      return {
+       email: user.email,
+        onboarding_completed: onboarding?.onboarding_completed,
+      };
+    }
     return user;
   } catch (error) {
     throw new AppError("error getting user by id", 500, "Something went wrong", true);

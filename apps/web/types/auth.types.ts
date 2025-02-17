@@ -1,15 +1,24 @@
 export interface User {
-    id: string
     email: string
     onboardingCompleted: boolean
-    first_name?: string
-    last_name?: string
-    height?: number
-    weight?: number
-    gender?: string
-    age?: number
-    activity_level?: string
-    fitness_goals?: string[]
+}
+
+export interface UserDetails {
+  id: string;
+  user_id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  height: number;
+  weight: number;
+  age: number;
+  gender: string;
+  activity_level: string;
+  fitness_goals: string[];
+  onboarding_completed: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthTokens {
@@ -36,6 +45,6 @@ export interface AuthError {
 }
 
 export interface UserResponse {
-    message: string
-    data: User
+  message: string;
+  data: UserDetails;
 }

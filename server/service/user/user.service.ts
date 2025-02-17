@@ -1,6 +1,6 @@
 import { AppError } from "../../lib/appError";
 import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB } from "../../model/user/user.model";
-import { authTokens, UserData, userDetailedData } from "../../types/user.types";
+import { authTokens, UserData, userDetailedData, userLoginData } from "../../types/user.types";
 import commonErrorsDictionary from "../../utils/error/commonErrors";
 import { hashPassword } from "../../utils/password";
 import { v4 as uuid } from "uuid";
@@ -129,6 +129,14 @@ export const registerUser = async (user: {
     };
   };
 
+export const getUserInfo = async (userId: string): Promise<userLoginData | null> => {
+  const user = await getUserbyId(userId);
+  if (!user) {
+    throw new AppError("User not found", 404, "User not found", false);
+  }
+  return user;
+}
+
   export const userDetailsCreate = async (user: {
     id: string;
     first_name: string;
@@ -149,7 +157,7 @@ export const registerUser = async (user: {
         "User not found",
         false
       );
-
+    
     const userDetails = await userDetailsCreateInDB(user);
     return userDetails; 
   };

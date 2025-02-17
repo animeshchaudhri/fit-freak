@@ -22,9 +22,11 @@ export const getNewAccessToken = async (): Promise<string | undefined> => {
 
 export const isTokenExpired = (token: string): boolean => {
   try {
+    
     const payloadBase64 = token.split('.')[1];
     const decodedPayload = JSON.parse(atob(payloadBase64));
     const { exp } = decodedPayload;
+    
     return Date.now() >= exp * 1000;
   } catch (error) {
     return true;

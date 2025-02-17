@@ -4,7 +4,7 @@ import {
     type RequestHandler,
     type Response,
   } from "express";
-import { getUserDetails, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
+import { getUserDetails, getUserInfo, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
 
 
 
@@ -50,6 +50,25 @@ export const registerUserController: RequestHandler = async (
     }
   };
 
+export const userInfoController: RequestHandler = async (
+req: Request,
+res: Response,
+next: NextFunction
+) => {
+  try {
+    const user = await getUserInfo(req.user.userId);
+    return res.status(200).json({
+      message: "User details fetched successfully",
+      data: user,
+    });
+  }catch (error) {
+    next(error);
+  }
+
+}
+
+
+
 export const userDetailsController: RequestHandler = async (
   req: Request,
   res: Response,
@@ -68,6 +87,11 @@ export const userDetailsController: RequestHandler = async (
       activity_level: req.body.activity_level,
       fitness_goals: req.body.fitness_goals,
     })
+    return res.status(201).json({
+      message: "User details created successfully",
+      data: userData,
+    });
+    
   } catch (error) {
     next(error);
   }

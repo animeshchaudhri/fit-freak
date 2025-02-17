@@ -9,14 +9,8 @@ import { Card } from "@/components/ui/card"
 import { Activity, Dumbbell, Timer } from "lucide-react"
 
 export default function ActivityPage() {
-  const { user, isLoading } = useAuth()
-  const router = useRouter()
+  const {  isLoading } = useAuth()
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push(routes.home)
-    }
-  }, [user, isLoading, router])
 
   if (isLoading) {
     return <div>Loading...</div>
