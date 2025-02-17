@@ -1,8 +1,21 @@
+"use client"
+
+import { useAuth } from "@/components/auth/auth-provider"
+import { useRouter } from "next/navigation"
+import { routes } from "@/lib/routes"
+import { useEffect } from "react"
 import { ActivityTracker } from "@/components/activity/activity-tracker"
 import { Card } from "@/components/ui/card"
 import { Activity, Dumbbell, Timer } from "lucide-react"
 
 export default function ActivityPage() {
+  const {  isLoading } = useAuth()
+
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="space-y-8">
       {/* Header with Date Selector */}

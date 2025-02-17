@@ -2,113 +2,217 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { routes } from "@/app/routes"
-
-interface User {
-  id: string
-  email: string
-  isNewUser?: boolean
-  onboardingCompleted?: boolean
-}
+import { routes } from "@/lib/routes"
+import { User, AuthTokens, LoginResponse, RegisterResponse, UserResponse } from "@/types/auth.types"
+import { toast } from "sonner"
+import api from '@/lib/api-client'
+import { clearTokens, getAccessToken, saveTokens } from "@/utils/tokenManager"
+import { getNewAccessToken, isTokenExpired } from "@/utils/jwtUtils"
+import { useUserStore } from "@/store/userstore"
+import { clear } from "console"
 
 interface AuthContextType {
   user: User | null
-  isNewUser: boolean
+  isLoading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => void
-  completeOnboarding: () => void
+  completeOnboarding: (profileData: Record<string, any>) => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error("useAuth must be used within AuthProvider")
+  return context
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isNewUser, setIsNewUser] = useState(false)
+  const setUserr = useUserStore((state) => state.setUserr)
+  const clearUserr = useUserStore((state) => state.clearUserr)
+
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Check for stored user data on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser)
-      setUser(parsedUser)
-      setIsNewUser(!!parsedUser.isNewUser)
+    const initAuth = async () => {
+      try {
+        const accessToken = getAccessToken()
+        if (accessToken) {
+          if (isTokenExpired(accessToken)) {
+            console.log('Access token expired. Refreshing...')
+            const newAccessToken = await getNewAccessToken()
+            if (!newAccessToken) {
+              clearTokens()
+              setUser(null)
+              router.push(routes.login)
+              return
+            }
+          }
+            const response = await api.get('/v1/user/user-details')
+            setUserr(response.data.data)
+            toast.success('Welcome back! You are now logged in.')
+
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+        clearTokens()
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    initAuth()
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    // Simulate API call
-   
+    try {
+      const response = await api.post<LoginResponse>('/v1/user/login', { 
+        email, 
+        password 
+      });
 
-    const mockUser = { 
-      id: "1", 
-      email, 
-      onboardingCompleted: true 
+      if (!response.data?.accessToken || !response.data?.refreshToken) {
+        throw new Error('Invalid login response');
+      }
+      toast.success('Login successful!');
+      const { accessToken, refreshToken } = response.data;
+      saveTokens(accessToken, refreshToken);
+      
+      // Get basic user info
+      const userInfoResponse = await api.get('/v1/user/info');
+      const basicUserInfo = userInfoResponse.data;
+   
+      try {
+        // Get detailed user profile
+        const userResponse = await api.get<UserResponse>('/v1/user/user-details');
+        setUserr(userResponse.data.data)
+        if (userResponse.data?.data) {
+          const userDetails = userResponse.data.data;
+          
+          // Merge basic user info with details
+          setUser({
+            ...basicUserInfo,
+            ...userDetails,
+            onboardingCompleted: userDetails.onboarding_completed
+          });
+          localStorage.setItem("onboardingCompleted", "true");
+
+          router.push(routes.activity);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          // User hasn't completed onboarding
+          clearUserr();
+          setUser(basicUserInfo);
+          router.push(routes.onboarding);
+        } else {
+          throw error;
+        }
+      }
+    } catch (error: any) {
+      clearTokens();
+      setUser(null);
+      clearUserr();
+      const message = error.response?.data?.message || 'Login failed';
+      toast.error(message);
     }
-    setUser(mockUser)
-    setIsNewUser(false)
-    localStorage.setItem('user', JSON.stringify(mockUser))
-    router.push(routes.activity)
   }
 
   const signUp = async (email: string, password: string) => {
-    // Simulate API call
-
-  console.log(password)
-    const mockUser = { 
-      id: "1", 
-      email, 
-      isNewUser: true,
-      onboardingCompleted: false
+    try {
+      const response = await api.post<RegisterResponse>('/v1/user/register', { 
+        email, 
+        password 
+      })
+      
+      try {
+        await signIn(email, password)
+      } catch (error: any) {
+        toast.success('Account created successfully! Please login to continue.')
+        await router.push(routes.login)
+      }
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        toast.error('Email already exists. Please login instead.')
+        await router.push(routes.login)
+      } else {
+        const message = error.response?.data?.message || 'Registration failed. Please try again.'
+        toast.error(message)
+      }
     }
-    setUser(mockUser)
-    setIsNewUser(true)
-    localStorage.setItem('user', JSON.stringify(mockUser))
-    // Don't redirect - let MainLayout handle showing onboarding
   }
 
   const signOut = () => {
+    clearTokens()
+    localStorage.removeItem("onboardingCompleted");
+    clearUserr();
     setUser(null)
-    setIsNewUser(false)
-    localStorage.removeItem('user')
-    router.push(routes.home)
+    router.push(routes.login)
   }
 
-  const completeOnboarding = () => {
-    if (user) {
-      const updatedUser = { 
-        ...user, 
-        isNewUser: false, 
-        onboardingCompleted: true 
+  const completeOnboarding = async (profileData: Record<string, any>) => {
+    try {
+      const response = await api.post('/v1/user/create-user', {
+        ...profileData,
+      })
+
+      if (response.status === 201 || response.status === 200) {
+        if (user) {
+          const updatedUser = {
+            ...user,
+            ...profileData,
+            onboarding_completed: true
+          }
+          setUser(updatedUser)
+          const userInfoResponse = await api.get('/v1/user/info');
+          const basicUserInfo = userInfoResponse.data;
+          try {
+           
+
+            const userResponse = await api.get<UserResponse>('/v1/user/user-details');
+        
+          if (userResponse.data?.data) {
+          const userDetails = userResponse.data.data;
+          setUserr(userDetails)
+          // Merge basic user info with details
+          setUser({
+            ...basicUserInfo,
+            ...userDetails,
+            onboardingCompleted: userDetails.onboarding_completed
+          });
+          localStorage.setItem("onboardingCompleted", "true");
+          
+        }
+          } catch (error) {
+            console.error('Error refreshing user details:', error)
+          }
+
+          toast.success('Profile completed successfully!')
+          router.push(routes.activity)
+        }
       }
-      setUser(updatedUser)
-      setIsNewUser(false)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      router.push(routes.activity)
+    } catch (error: any) {
+      console.error('Onboarding error:', error)
+      toast.error(error.response?.data?.message || 'Failed to complete onboarding')
+      throw error
     }
   }
 
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        isNewUser, 
-        signIn, 
-        signUp, 
-        signOut,
-        completeOnboarding 
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+      completeOnboarding
+    }}>
       {children}
     </AuthContext.Provider>
   )
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-} 

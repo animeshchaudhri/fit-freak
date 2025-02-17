@@ -1,37 +1,91 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Card } from "../ui/card"
+import { useAuth } from "./auth-provider"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Loader } from "lucide-react"
+import { toast } from "react-hot-toast"
 
-export function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true)
+interface AuthFormProps {
+  defaultIsLogin?: boolean
+}
+
+export function AuthForm({ defaultIsLogin = true }: AuthFormProps) {
+  const [isLogin, setIsLogin] = useState(defaultIsLogin)
+  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const { signIn, signUp } = useAuth()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) {
+      toast.error('Please fill in all fields')
+      return
+    }
+    
+    setIsLoading(true)
+    
+    try {
+      if (isLogin) {
+        await signIn(email, password)
+      } else {
+        await signUp(email, password)
+      }
+    } catch (error) {
+      // Error is already handled in auth provider
+      console.error('Auth error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
-    <Card className="w-full max-w-md p-6 bg-gray-800/30 border-0">
-      <h2 className="text-2xl font-bold mb-6">{isLogin ? "Login" : "Sign Up"}</h2>
-      <form className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm text-gray-400">Email</label>
-          <Input type="email" placeholder="Enter your email" />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm text-gray-400">Password</label>
-          <Input type="password" placeholder="Enter your password" />
-        </div>
-        <Button className="w-full">{isLogin ? "Login" : "Sign Up"}</Button>
-        <p className="text-center text-sm text-gray-400">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            type="button"
-            className="text-blue-400 hover:underline"
-            onClick={() => setIsLogin(!isLogin)}
-          >
-            {isLogin ? "Sign Up" : "Login"}
-          </button>
+    <div className="w-full max-w-md space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold">{isLogin ? "Welcome Back" : "Create Account"}</h2>
+        <p className="text-gray-500 mt-2">
+          {isLogin ? "Sign in to your account" : "Sign up for a new account"}
         </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+              {isLogin ? "Signing in..." : "Creating account..."}
+            </>
+          ) : (
+            isLogin ? "Sign In" : "Sign Up"
+          )}
+        </Button>
       </form>
-    </Card>
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="text-primary hover:underline"
+        >
+          {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+        </button>
+      </div>
+    </div>
   )
-} 
+}

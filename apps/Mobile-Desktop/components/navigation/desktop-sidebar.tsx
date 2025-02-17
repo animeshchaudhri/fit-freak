@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { routes } from "@/app/routes"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
+import { useUserStore } from "@/store/userstore"
 
 const navItems = [
   { icon: Activity, label: "Activity", href: routes.activity },
@@ -18,7 +19,8 @@ const navItems = [
 
 export function DesktopSidebar({ className }: { className?: string }) {
   const pathname = usePathname()
-  const { user, signOut } = useAuth()
+  const user = useUserStore((state) => state.user)
+  const { signOut } = useAuth()
 
   return (
     <div className={cn("w-64 border-r border-gray-800 p-4", className)}>
@@ -54,7 +56,9 @@ export function DesktopSidebar({ className }: { className?: string }) {
               <User className="w-4 h-4 text-gray-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate">
+                {user ? `${user.first_name} ${user.last_name}` : 'Loading...'}
+              </p>
             </div>
           </div>
           <Button 
@@ -69,4 +73,4 @@ export function DesktopSidebar({ className }: { className?: string }) {
       </div>
     </div>
   )
-} 
+}

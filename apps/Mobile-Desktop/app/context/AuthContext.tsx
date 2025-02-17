@@ -1,23 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-}
+import { useRouter } from 'next/navigation'
+import { routes } from '@/lib/routes'
+import { User } from '@/types/auth.types'
 
 interface AuthContextType {
-  user: User | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  isLoading: boolean
+  user: User | null;
+  isLoading: boolean;
+  completeOnboarding: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     // Check for stored token and validate
@@ -65,8 +62,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
+  const completeOnboarding = () => {
+    if (user) {
+      const updatedUser: User = {
+        ...user,
+        onboardingCompleted: true
+      }
+      setUser(updatedUser)
+      router.push(routes.activity)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      completeOnboarding 
+    }}>
       {children}
     </AuthContext.Provider>
   )
