@@ -118,7 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       clearUserr();
       const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
+      // toast.error(message);
+      toast.error('Invalid email or password. Please try again.');
     }
   }
 
