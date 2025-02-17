@@ -1,445 +1,190 @@
-import { FindAndCountOptions, ForeignKeyConstraintError, UniqueConstraintError } from "sequelize";
+import { UUIDV4 } from "sequelize";
 import { sequelize } from "../../config/database";
 import logger from "../../config/logger";
 import { AppError } from "../../lib/appError";
 import Password from "../../schema/user/password.schema";
 import RefreshToken from "../../schema/user/refreshToken.schema";
-import Role from "../../schema/user/role.schema";
 import User from "../../schema/user/user.schema";
-import {
-  device,
-  roleAttributes,
-  userAttributes,
-  type RoleData,
-  type UserData,
-} from "../../types/user.types";
-
+import UserDetails from "../../schema/user/user_details.schema";
+import { UserData, userDetailedData } from "../../types/user.types";
+import { v4 as uuidv4 } from 'uuid';
 
 
 export const getUserByEmail = async (
-  email: string
-): Promise<UserData | null> => {
-  try {
-    const user = User.findOne({
-      where: {
-        email,
-      },
-      raw: true,
-    });
-
-    return await user;
-  } catch (error) {
-    throw new AppError(
-      "error getting user by email",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-export const getUserById = async (id: string): Promise<UserData | null> => {
-  try {
-    const user = User.findOne({
-      where: {
-        id,
-      },
-      raw: true,
-    });
-    return await user;
-  } catch (error) {
-    throw new AppError(
-      "error getting user by id",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-export const getAllUsers = async (
-  offset?: number,
-  pageSize?: number,
-  sortBy?: userAttributes,
-  order?: "ASC" | "DESC",
-): Promise<{
-  rows: UserData[],
-  count: number
-}> => {
-  try {
-    const findOptions: FindAndCountOptions = (offset !== null || offset !== undefined) && pageSize && sortBy && order ? {
-      limit: pageSize,
-      offset: offset,
-      order: [[sortBy, order]]
-    } : {}
-
-    const allUsersData = await User.findAndCountAll(findOptions);
-
-    // Convert the data to plain object
-    let plainData: {
-      rows: UserData[]
-      count: number
-    } = {
-      rows: allUsersData.rows.map((user) => user.get({ plain: true })),
-      count: allUsersData.count
+    email: string
+  ): Promise<UserData | null> => {
+    try {
+      const user = User.findOne({
+        where: {
+          email,
+        },
+        raw: true,
+      });
+  
+      return await user;
+    } catch (error) {
+      throw new AppError(
+        "error getting user by email",
+        500,
+        "Something went wrong",
+        false
+      );
     }
+  };
+  export const updateOrSaveRefreshToken = async (token: {
+    userId: string;
+    refreshToken: string;
+  },
+   
+  ): Promise<boolean> => {
+    logger.info(`Saving refresh token for ${token.userId}`);
+    try {
+      const refreshToken = await RefreshToken.upsert(
+        {
+          user_id: token.userId,
+      
+          refresh_token: token.refreshToken,
+        },
+      );
+      return true;
+    } catch (error: any) {
+      throw new AppError("error saving refresh token", 500, error, true);
+    }
+  };
 
-    return plainData;
-  } catch (error) {
-    throw new AppError(
-      "error getting all users",
-      500,
-      "Something went wrong",
-      true
-    );
-  }
-};
-
-export const getAllRoles = async (
-  offset: number,
-  pageSize: number,
-  sortBy: roleAttributes,
-  order: "ASC" | "DESC",
-): Promise<{
-  rows: RoleData[],
-  count: number
-}> => {
-  try {
-    const allRolesData = Role.findAndCountAll({
-      limit: pageSize,
-      offset: offset,
-      order: [[sortBy, order]]
-    });
-    // @ts-ignore
-    return await allRolesData;
-  } catch (error) {
-    throw new AppError(
-      "error getting all roles",
-      500,
-      "Something went wrong",
-      true
-    );
-  }
-};
+  export const getPasswordById = async (id: string): Promise<Password | null> => {
+    try {
+      const password = await Password.findOne({
+        where: {
+          user_id: id,
+        },
+        raw: true,
+      });
+  
+      return password;
+    } catch (error) {
+      throw new AppError(
+        "error getting password by id",
+        500,
+        "Something went wrong",
+        false
+      );
+    }
+  };
 
 export const createUser = async (userData: {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  phone: string | null;
-  roleId: string | null;
-}): Promise<UserData | null> => {
-  logger.info(`Creating user with email: ${userData.email}`);
-  const transaction = await sequelize.transaction();
+    id: string;
+    email: string;
+    password: string;
+   
+  }): Promise<UserData | null> => {
+    const transaction = await sequelize.transaction();
+    logger.info(`Creating user with email: ${userData.email}`);
+    try {
+      const user = await User.create(
+        {
+          id: userData.id,
+          email: userData.email,
+      
+        },
+        { transaction, raw: true }
+      );
+  
+      await Password.create(
+        {
+          user_id: userData.id,
+          password: userData.password,
+        },
+        { transaction, raw: true }
+      );
+  
+      await transaction.commit();
+      return user;
+    } catch (error) {
+      // Rollback transaction if there's an error
+      await transaction.rollback();
+      throw new AppError(
+        "error creating user",
+        500,
+        "Something went wrong",
+        false
+      );
+    }
+  };
+  
+export const getUserbyId = async (id: string): Promise<UserData | null> => {
   try {
-    const user = await User.create(
-      {
-        id: userData.id,
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        email: userData.email,
-        phone: userData.phone,
-        role_id: userData.roleId,
-      },
-      { transaction, raw: true }
-    );
-
-    await Password.create(
-      {
-        user_id: userData.id,
-        password: userData.password,
-      },
-      { transaction, raw: true }
-    );
-
-    await transaction.commit();
+    const user = await User.findByPk(id);
     return user;
   } catch (error) {
-    // Rollback transaction if there's an error
+    throw new AppError("error getting user by id", 500, "Something went wrong", true);
+  }
+};
+
+export const userDetailsCreateInDB = async (user: {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  height: number;
+  weight: number;
+  gender: string;
+  age: number;
+  activity_level: string;
+  fitness_goals: string[];
+}): Promise<userDetailedData | null> => {
+  const transaction = await sequelize.transaction();
+  try {
+    logger.info(`Creating user details for ${user.id}`);
+
+    const userDetails = await UserDetails.create({
+      id: uuidv4(),
+      user_id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone: user.phone,
+      height: user.height,
+      weight: user.weight,
+      gender: user.gender,
+      age: user.age,
+      activity_level: user.activity_level,
+      fitness_goals: user.fitness_goals,
+      onboarding_completed: true
+    }, { transaction });
+    
+    await transaction.commit();
+    logger.info(`User details created for ${user.id}`);
+    return userDetails;
+  } catch (error: unknown) {
     await transaction.rollback();
-    throw new AppError(
-      "error creating user",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-export const updateUserInDb = async (userData: {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  phone: string | null;
-  roleId: string | null;
-}): Promise<UserData | null> => {
-  logger.info(`Updating user with id ${userData.id}`);
-
-  try {
-    const updateData: any = {
-      first_name: userData.firstName ?? undefined,
-      last_name: userData.lastName ?? undefined,
-      email: userData.email ?? undefined,
-      phone: userData.phone ?? undefined,
-      role_id: userData.roleId ?? undefined,
-    };
-
-    Object.keys(updateData).forEach(
-      (key) => updateData[key] === undefined && delete updateData[key]
-    );
-
-    if (Object.keys(updateData).length === 0) {
-      return null;
+    if (error instanceof Error) {
+      const messages = (error as any).errors.map((err: any) => err.message);
+      throw new AppError(
+        "Validation Error",
+        400,
+        messages.join(", "),
+        false
+      );
     }
+    throw new AppError("error creating user details", 500, "Something went wrong", true);
+  }
+};
 
-    const [_, [updatedUser]] = await User.update(updateData, {
-      where: {
-        id: userData.id,
-      },
-      returning: true,
+export const checkUserDetailsExist = async (userId: string): Promise<userDetailedData | null> => {
+  try {
+    const userDetails = await UserDetails.findOne({
+      where: { user_id: userId },
+   
     });
-
-    return updatedUser.dataValues as UserData;
+    return userDetails;
   } catch (error) {
+    logger.error(`Error checking user details existence for user ID ${userId}:`, error);
     throw new AppError(
-      "error updating user",
+      "Database Error",
       500,
-      "Something went wrong",
-      false
+      "Error checking user details",
+      true
     );
   }
 };
-
-export const getPasswordById = async (id: string): Promise<Password | null> => {
-  try {
-    const password = await Password.findOne({
-      where: {
-        user_id: id,
-      },
-      raw: true,
-    });
-
-    return password;
-  } catch (error) {
-    throw new AppError(
-      "error getting password by id",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-export const createRoleInDB = async (
-  role: RoleData
-): Promise<RoleData | null> => {
-  logger.info(`Creating role: ${role.name}`);
-  try {
-    const createdRole = await Role.create(
-      {
-        id: role.id,
-        name: role.name,
-        canManageAssessment: role.canManageAssessment,
-        canManageUser: role.canManageUser,
-        canManageRole: role.canManageRole,
-        canManageNotification: role.canManageNotification,
-        canManageLocalGroup: role.canManageLocalGroup,
-        canManageReports: role.canManageReports,
-        canAttemptAssessment: role.canAttemptAssessment,
-        canViewReport: role.canViewReport,
-        canManageMyAccount: role.canManageMyAccount,
-        canViewNotification: role.canViewNotification,
-      },
-      {
-        raw: true,
-      }
-    );
-    // @ts-ignore
-    return createdRole;
-  } catch (error) {
-    throw new AppError(
-      "error creating role",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-export const updateRoleInDB = async (role :{
-  id: string;
-  name: string | null;
-  canManageAssessment: boolean | null;
-  canManageUser: boolean | null;
-  canManageRole: boolean | null;
-  canManageNotification: boolean | null;
-  canManageLocalGroup: boolean | null;
-  canManageReports: boolean | null;
-  canAttemptAssessment: boolean | null;
-  canViewReport: boolean | null;
-  canManageMyAccount: boolean | null;
-  canViewNotification: boolean | null;
-}): Promise<RoleData | null> => {
-  logger.info(`Updating role: ${role.id}`);
-  try {
-    const updateData: any = {
-      name: role.name ?? undefined,
-      canManageAssessment: role.canManageAssessment ?? undefined,
-      canManageUser: role.canManageUser ?? undefined,
-      canManageRole: role.canManageRole ?? undefined,
-      canManageNotification: role.canManageNotification ?? undefined,
-      canManageLocalGroup: role.canManageLocalGroup ?? undefined,
-      canManageReports: role.canManageReports ?? undefined,
-      canAttemptAssessment: role.canAttemptAssessment ?? undefined,
-      canViewReport: role.canViewReport ?? undefined,
-      canManageMyAccount: role.canManageMyAccount ?? undefined,
-      canViewNotification: role.canViewNotification ?? undefined,
-    };
-
-    Object.keys(updateData).forEach(
-      (key) => updateData[key] === undefined && delete updateData[key]
-    );
-
-    if (Object.keys(updateData).length === 0) {
-      return null;
-    }
-
-    const [_, [updatedRole]] = await Role.update(updateData, {
-      where: {
-        id: role.id,
-      },
-      returning: true,
-    });
-
-    return updatedRole.dataValues as RoleData;
-  } catch (error) {
-    throw new AppError(
-      "error updating role",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-
-
-export const getRoleById = async (id: string): Promise<RoleData | null> => {
-  logger.info(`Fetching role by id: ${id}`);
-  try {
-    const role = await Role.findOne({
-      where: {
-        id,
-      },
-    });
-    // @ts-ignore
-    return role;
-  } catch (error) {
-    throw new AppError(
-      "error finding role",
-      500,
-      "Something went wrong",
-      false
-    );
-  }
-};
-
-// Update the refresh token if exists otherwise create one
-export const updateOrSaveRefreshToken = async (token: {
-  userId: string;
-  refreshToken: string;
-},
-  deviceType: device
-): Promise<boolean> => {
-  logger.info(`Saving refresh token for ${token.userId}`);
-  try {
-    const refreshToken = await RefreshToken.upsert(
-      {
-        user_id: token.userId,
-        device_type: deviceType,
-        refresh_token: token.refreshToken,
-      },
-    );
-    return true;
-  } catch (error: any) {
-    throw new AppError("error saving refresh token", 500, error, true);
-  }
-};
-
-export const deleteRolesById = async (roleIds: string[]): Promise<boolean> => {
-  logger.info(`Deleting roles with id: ${roleIds}`);
-  try {
-    const result = await Role.destroy({
-      where: {
-        id: roleIds,
-      },
-    })
-
-    if (result === 0) {
-      return false;
-    };
-
-  } catch (error: any) {
-    throw new AppError(
-      "error deleting role",
-      500,
-      error,
-      false
-    );
-  }
-  return true;
-};
-
-export const createBulkUsers = async (
-  userData: UserData[],
-  updateExisting: boolean = false
-): Promise<boolean> => {
-  logger.info(`creating bulk users`);
-  try {
-    logger.debug(userData)
-    await User.bulkCreate(userData, updateExisting ? {
-      updateOnDuplicate: ["first_name", "last_name", "email", "phone", "role_id"],
-    } : {
-      ignoreDuplicates: true,
-    });
-
-    return true;
-  } catch (error: any) {
-    throw new AppError(
-      "Error creating bulk users",
-      500,
-      error,
-      false
-    );
-  }
-};
-
-export const deleteUsersById = async (userIds: string[]): Promise<boolean> => {
-  logger.debug(`Deleting roles with id: ${userIds}`);
-  try {
-    const result = await User.destroy({
-      where: {
-        id: userIds,
-      },
-    })
-
-    if (result === 0) {
-      return false;
-    };
-
-    return true
-  } catch (error: any) {
-    throw new AppError(
-      "error deleting users",
-      500,
-      error,
-      false
-    );
-  }
-};
-
-
 

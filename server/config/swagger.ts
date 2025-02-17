@@ -28,6 +28,7 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options)
 function swaggerDocs (app: Application): void {
   // Swagger Page
+  //@ts-ignore
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
   // Documentation in JSON format
   app.get('/docs.json', (req, res) => {

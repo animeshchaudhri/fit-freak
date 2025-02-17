@@ -3,14 +3,14 @@ import { promisify } from 'util';
 import { AppError } from '../lib/appError';
 import bcrypt from 'bcrypt'
 
-const hashPassword = async (password: string): Promise<string> => {
-  try {
-    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt())
-
-    return hashedPassword;
-  } catch (error) {
-    throw new AppError('Error hashing password', 500, (error as Error).message, false);
-  }
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10)
+  return bcrypt.hash(password, salt)
 }
 
-export { hashPassword };
+export const comparePassword = async (
+  password: string, 
+  hashedPassword: string
+): Promise<boolean> => {
+  return bcrypt.compare(password, hashedPassword)
+}

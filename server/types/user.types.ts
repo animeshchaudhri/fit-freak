@@ -2,32 +2,29 @@
 
 export type UserData = {
   id: string;
-  role_id: string | null;
+  email: string;
+};
+
+export type userDetailedData = {
+  id: string;
+  user_id: string;
   first_name: string;
   last_name: string;
-  email: string;
-  phone: string | null;
-};
+  phone: string;
+  height?: number;
+  weight?: number;
+  gender?: string;
+  age?: number;
+  activity_level?: string;
+  fitness_goals?: string[];
+  onboarding_completed: boolean;
+}
 
 export type authTokens = {
   accessToken: string;
   refreshToken: string;
 };
 
-export type RoleData = {
-  id: string;
-  name: string;
-  canManageAssessment: boolean;
-  canManageUser: boolean;
-  canManageRole: boolean;
-  canManageNotification: boolean;
-  canManageLocalGroup: boolean;
-  canManageReports: boolean;
-  canAttemptAssessment: boolean;
-  canViewReport: boolean;
-  canManageMyAccount: boolean;
-  canViewNotification: boolean;
-};
 
 export type device = 'mobile' | 'web';
 
@@ -47,30 +44,3 @@ export type userAttributes =
   | 'createdAt'
   | 'updatedAt'
 
-  export type roleAttributes =
-  | 'id'
-  | 'name'
-  | 'canManageAssessment'
-  | 'canManageUser'
-  | 'canManageRole'
-  | 'canManageNotification'
-  | 'canManageLocalGroup'
-  | 'canManageReports'
-  | 'canAttemptAssessment'
-  | 'canViewReport'
-  | 'canManageMyAccount'
-  | 'canViewNotification'
-  | 'createdAt'
-  | 'updatedAt';
-
-export type Permissions =
-  | 'canManageAssessment'
-  | 'canManageUser'
-  | 'canManageRole'
-  | 'canManageNotification'
-  | 'canManageLocalGroup'
-  | 'canManageReports'
-  | 'canAttemptAssessment'
-  | 'canViewReport'
-  | 'canManageMyAccount'
-  | 'canViewNotification'

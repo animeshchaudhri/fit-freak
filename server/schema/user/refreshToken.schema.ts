@@ -5,12 +5,12 @@ import { device } from '../../types/user.types'
 interface RefreshTokenAttributes {
   user_id: string
   refresh_token: string,
-  device_type: device
+ 
 }
 
 class RefreshToken extends Model<RefreshTokenAttributes> implements RefreshTokenAttributes {
   public user_id!: string
-  public device_type!: device
+
   public refresh_token!: string
 }
 RefreshToken.init(
@@ -20,11 +20,7 @@ RefreshToken.init(
       primaryKey: true,
       allowNull: false
     },
-    device_type: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false
-    },
+   
     refresh_token: {
       type: DataTypes.STRING,
       allowNull: false
