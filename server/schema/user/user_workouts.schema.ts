@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize'
 import { sequelize } from '../../config/database'
+import UserDetails from './user_details.schema'
 
 interface UserWorkoutsAttributes {
   id: string
@@ -14,6 +15,8 @@ class UserWorkouts extends Model<UserWorkoutsAttributes> implements UserWorkouts
   public user_id!: string
   public calories_burned!: number
   public number_workouts!: number
+  public readonly UserDetail?: UserDetails;
+
 }
 
 UserWorkouts.init(

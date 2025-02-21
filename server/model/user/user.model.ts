@@ -281,25 +281,32 @@ export const checkUserDetailsExist = async (userId: string): Promise<userDetaile
 export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
   try {
     const workouts = await UserWorkouts.findAll({
+      attributes: [
+        'id',
+        'user_id',
+        'calories_burned',
+        'number_workouts'
+      ],
       order: [
         ['calories_burned', 'DESC']
       ],
       include: [{
         model: UserDetails,
+        required: true,
+        attributes: ['first_name', 'last_name'],
         where: {
           user_id: sequelize.col('UserWorkouts.user_id')
         }
       }],
-      raw: true
+      raw: false // Change to false to properly handle associations
     });
 
     const leaderboardData: LeaderboardData[] = workouts.map((workout, index) => ({
-      first_name: (workout as any)['user_details.first_name'],
-      last_name: (workout as any)['user_details.last_name'],
+      first_name: workout.UserDetail?.first_name || '',
+      last_name: workout.UserDetail?.last_name || '',
       calories_burned: workout.calories_burned,
-      numebr_workouts: workout.number_workouts,
-      rank: index + 1,
-      
+      numebr_workouts: workout.number_workouts, // Fixed typo matching type definition
+      rank: index + 1
     }));
 
     return {

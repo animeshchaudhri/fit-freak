@@ -49,11 +49,11 @@ const Leaderboard: React.FC = () => {
       try {
         const response = await api.get('/v1/user/leaderboard');
         console.log("response: " , response);
-        if (!response.ok) {
+        if (response.status < 200 || response.status >= 300) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
+        const data = response.data;
         if (data?.data?.leaderboardData) {
           setLeaderboard(data.data.leaderboardData);
         }

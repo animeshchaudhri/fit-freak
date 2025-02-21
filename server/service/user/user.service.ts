@@ -224,6 +224,10 @@ export const getUserWorkouts= async (userId: string): Promise<userWorkoutData | 
     const leaderboard = await getLeaderBoardData();
     return leaderboard;
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      logger.info(`Error getting leaderboard: ${error}`);
       throw new AppError("error getting leaderboard", 500, "Something went wrong", true);
     }
   }

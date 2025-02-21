@@ -73,7 +73,7 @@ res: Response,
 next: NextFunction
 ) => {
   try {
-    const user = await getUsers();
+    const user = await getUserInfo(req.user.userId);
     return res.status(200).json({
       message: "User details fetched successfully",
       data: user,
