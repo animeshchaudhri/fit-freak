@@ -75,6 +75,11 @@ UserWorkouts.belongsTo(UserDetails, {
   targetKey: 'user_id',
   as: 'UserDetail'
 });
+User.hasMany(ChallengeParticipant, {
+  foreignKey: 'user_id',
+  as: 'participatedChallenges'
+});
+
 Challenge.hasMany(ChallengeParticipant, {
   foreignKey: 'challenge_id',
   as: 'participants'

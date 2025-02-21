@@ -18,7 +18,12 @@ interface ChallengeAttributes {
   reward_points: number
 }
 
-class Challenge extends Model<ChallengeAttributes> implements ChallengeAttributes {
+interface ChallengeInstance extends Model<ChallengeAttributes>, ChallengeAttributes {
+  ChallengeParticipants?: ChallengeParticipant[];
+  participants?: ChallengeParticipant[];
+}
+
+class Challenge extends Model<ChallengeAttributes, ChallengeAttributes> implements ChallengeAttributes {
   public id!: string
   public creator_id!: string
   public title!: string
@@ -34,6 +39,7 @@ class Challenge extends Model<ChallengeAttributes> implements ChallengeAttribute
 
   // Add associations
   public readonly ChallengeParticipants?: ChallengeParticipant[]
+  public readonly participants?: ChallengeParticipant[]
   public getParticipants!: HasManyGetAssociationsMixin<ChallengeParticipant>
 
   public static associations: {
@@ -108,7 +114,12 @@ Challenge.init(
 Challenge.hasMany(ChallengeParticipant, {
   sourceKey: 'id',
   foreignKey: 'challenge_id',
-  as: 'ChallengeParticipants'
+  as: 'participants'
+});
+
+Challenge.belongsTo(User, {
+  foreignKey: 'creator_id',
+  as: 'creator'
 });
 
 export default Challenge
