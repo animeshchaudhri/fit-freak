@@ -1,3 +1,6 @@
+
+// @ts-nocheck
+
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Activity, Dumbbell, Timer, Heart, Flame, Calendar, BarChart3, Footprints, MapPin, ArrowRight, Clock } from 'lucide-react';

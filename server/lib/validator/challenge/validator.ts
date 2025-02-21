@@ -15,14 +15,9 @@ export const validateChallengeCreate = [
     .isLength({ min: 10, max: 500 })
     .withMessage("Description must be between 10 and 500 characters"),
 
-  check("type")
-    .notEmpty()
-    .isIn(['Steps', 'Distance', 'Calories', 'Workouts'])
-    .withMessage("Invalid challenge type"),
-
   check("goal_type")
     .notEmpty()
-    .isIn(['Daily', 'Weekly', 'Total'])
+    .isIn(['steps', 'calories', 'distance', 'activeMinutes', 'custom'])
     .withMessage("Invalid goal type"),
 
   check("goal_value")
@@ -30,24 +25,29 @@ export const validateChallengeCreate = [
     .isFloat({ min: 0 })
     .withMessage("Goal value must be a positive number"),
 
-  check("start_date")
+  check("duration")
     .notEmpty()
+    .isInt({ min: 1 })
+    .withMessage("Duration must be at least 1 day"),
+
+  check("start_date")
+    .optional()
     .isISO8601()
     .withMessage("Invalid start date"),
 
   check("end_date")
-    .notEmpty()
+    .optional()
     .isISO8601()
     .withMessage("Invalid end date")
     .custom((endDate, { req }) => {
-      if (new Date(endDate) <= new Date(req.body.start_date)) {
+      if (endDate && req.body.start_date && new Date(endDate) <= new Date(req.body.start_date)) {
         throw new Error('End date must be after start date');
       }
       return true;
     }),
 
   check("reward_points")
-    .notEmpty()
+    .optional()
     .isInt({ min: 0 })
     .withMessage("Reward points must be a positive integer"),
 
