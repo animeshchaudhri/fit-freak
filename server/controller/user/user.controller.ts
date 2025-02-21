@@ -4,7 +4,7 @@ import {
     type RequestHandler,
     type Response,
   } from "express";
-import { createUserWorkout, getUserDetails, getUserInfo, getUserWorkouts, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
+import { createUserWorkout, getLeaderboard, getUserDetails, getUserInfo, getUserWorkouts, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
 
 
 
@@ -136,7 +136,21 @@ next: NextFunction
 }
 
 
-
+export const leaderboardController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const leaderboard = await getLeaderboard();
+    return res.status(200).json({
+      message: "Leaderboard fetched successfully",
+      data: leaderboard,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const getUserDetailsController: RequestHandler = async (
   req: Request,
   res: Response,

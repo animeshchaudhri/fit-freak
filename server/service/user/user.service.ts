@@ -1,6 +1,6 @@
 import { AppError } from "../../lib/appError";
-import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB, userWorkoutDetailsCreateInDB, getallworkoutData } from "../../model/user/user.model";
-import { allUserWorkoutData, authTokens, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
+import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB, userWorkoutDetailsCreateInDB, getallworkoutData, getLeaderBoardData } from "../../model/user/user.model";
+import { allleaderboardData, allUserWorkoutData, authTokens, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import commonErrorsDictionary from "../../utils/error/commonErrors";
 import { hashPassword } from "../../utils/password";
 import { v4 as uuid } from "uuid";
@@ -209,3 +209,12 @@ export const getUserWorkouts= async (userId: string): Promise<userWorkoutData | 
       throw new AppError("error getting user details", 500, "Something went wrong", true);
     }
   };
+
+  export const getLeaderboard = async (): Promise<allleaderboardData| null> => {
+    try {
+    const leaderboard = await getLeaderBoardData();
+    return leaderboard;
+    } catch (error) {
+      throw new AppError("error getting leaderboard", 500, "Something went wrong", true);
+    }
+  }

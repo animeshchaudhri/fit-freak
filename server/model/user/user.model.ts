@@ -6,7 +6,7 @@ import Password from "../../schema/user/password.schema";
 import RefreshToken from "../../schema/user/refreshToken.schema";
 import User from "../../schema/user/user.schema";
 import UserDetails from "../../schema/user/user_details.schema";
-import { allUserWorkoutData, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
+import { allleaderboardData, allUserWorkoutData, LeaderboardData, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import { v4 as uuidv4 } from 'uuid';
 import UserWorkouts from "../../schema/user/user_workouts.schema";
 
@@ -256,3 +256,36 @@ export const checkUserDetailsExist = async (userId: string): Promise<userDetaile
   }
 };
 
+export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
+  try {
+    const workouts = await UserWorkouts.findAll({
+      order: [
+        ['calories_burned', 'DESC']
+      ],
+      raw: true
+    });
+
+    const leaderboardData: LeaderboardData[] = workouts.map((workout, index) => ({
+      user: {
+        id: workout.id,
+        user_id: workout.user_id,
+        calories_burned: workout.calories_burned,
+        number_workouts: workout.number_workouts
+      },
+      rank: index + 1
+    }));
+
+    return {
+      leaderboardData
+    };
+
+  } catch (error) {
+    logger.error(`Error getting leaderboard data:`, error);
+    throw new AppError(
+      "Database Error",
+      500,
+      "Error getting leaderboard data",
+      true
+    );
+  }
+};

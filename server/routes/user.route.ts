@@ -2,7 +2,7 @@ import express from "express";
 import type { Router } from "express";
 import { validateUserLogin, validateUserRegister } from "../lib/validator";
 import { validateRequest } from "../utils/validateRequest";
-import { getUserDetailsController, loginUserController, registerUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
+import { getUserDetailsController, leaderboardController, loginUserController, registerUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
 import { validateUserCreate, validateWorkoutCreate } from "../lib/validator/user/validator";
 import { authenticateUser } from "../middleware/Auth";
 import { userInfo } from "os";
@@ -428,5 +428,55 @@ router.post("/user-workout", authenticateUser(),validateWorkoutCreate,  validate
  */
 router.get("/user-workout", authenticateUser(), validateRequest, userWorkoutGetController);
 
-
+/**
+ * @swagger
+ * /v1/user/leaderboard:
+ *   get:
+ *     summary: Get workout leaderboard rankings
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Leaderboard data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Leaderboard data retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     leaderboardData:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 format: uuid
+ *                               user_id:
+ *                                 type: string
+ *                                 format: uuid
+ *                               calories_burned:
+ *                                 type: number
+ *                                 description: Total calories burned by the user
+ *                               number_workouts:
+ *                                 type: number
+ *                                 description: Total number of workouts completed
+ *                           rank:
+ *                             type: number
+ *                             description: User's position on the leaderboard
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/leaderboard", authenticateUser(), validateRequest, leaderboardController);
 export default router;

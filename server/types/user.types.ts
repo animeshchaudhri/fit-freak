@@ -26,6 +26,16 @@ export type userDetailedData = {
 export type allUserWorkoutData = {
   userData: userWorkoutData[];
 }
+
+export type allleaderboardData={
+  leaderboardData: LeaderboardData[];
+}
+
+export type LeaderboardData = {
+  user: userWorkoutData
+  rank: number
+}
+
 export type userWorkoutData = {
   user_id: string;
   calories_burned: number;
