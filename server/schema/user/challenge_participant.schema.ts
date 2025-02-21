@@ -1,8 +1,7 @@
 import { DataTypes, Model } from 'sequelize'
 import { sequelize } from '../../config/database'
-
-import User from './user.schema'
 import Challenge from './challenge.schema'
+import User from './user.schema'
 
 interface ChallengeParticipantAttributes {
   id: string

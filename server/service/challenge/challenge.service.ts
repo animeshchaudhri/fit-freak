@@ -10,14 +10,23 @@ import { ChallengeData, CreateChallengeRequest } from "../../types/challenge.typ
 import logger from "../../config/logger";
 
 export const createChallenge = async (
-  data: CreateChallengeRequest & { creatorId: string }
+  data: CreateChallengeRequest & { creator_id: string }
 ): Promise<ChallengeData> => {
   try {
+    // Set default dates if not provided
+    if (!data.start_date) {
+      data.start_date = new Date();
+    }
+    if (!data.end_date) {
+      const startDate = new Date(data.start_date);
+      data.end_date = new Date(startDate.setDate(startDate.getDate() + data.duration));
+    }
+
     const challenge = await createChallengeInDB(data);
     
-    if (data.invitedUsers?.length) {
+    if (data.invited_users?.length) {
       await Promise.all(
-        data.invitedUsers.map(userId => 
+        data.invited_users.map(userId => 
           inviteToChallengeInDB(challenge.id, userId)
         )
       );

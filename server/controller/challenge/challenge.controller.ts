@@ -1,17 +1,26 @@
 import { type NextFunction, type Request, type RequestHandler, type Response } from "express";
 import { AppError } from "../../lib/appError";
 import { createChallenge, getUserChallenges, inviteToChallenge, updateChallengeProgress } from "../../service/challenge/challenge.service";
-import { ChallengeResponse, ChallengeListResponse } from "../../types/challenge.types";
+import { ChallengeResponse, ChallengeListResponse, CreateChallengeRequest } from "../../types/challenge.types";
 
 export const createChallengeController: RequestHandler = async (
-  req: Request,
+  req: Request<{}, {}, CreateChallengeRequest>,
   res: Response<ChallengeResponse>,
   next: NextFunction
 ) => {
   try {
+    // Calculate end date if not provided
+    if (!req.body.start_date) {
+      req.body.start_date = new Date();
+    }
+    if (!req.body.end_date) {
+      const startDate = new Date(req.body.start_date);
+      req.body.end_date = new Date(startDate.setDate(startDate.getDate() + req.body.duration));
+    }
+
     const challenge = await createChallenge({
       ...req.body,
-      creatorId: req.user.userId
+      creator_id: req.user.userId
     });
 
     return res.status(201).json({

@@ -1,6 +1,7 @@
-import { DataTypes, Model } from 'sequelize'
+import { DataTypes, Model, Association, HasManyGetAssociationsMixin } from 'sequelize'
 import { sequelize } from '../../config/database'
 import User from './user.schema'
+import ChallengeParticipant from './challenge_participant.schema'
 
 interface ChallengeAttributes {
   id: string
@@ -8,10 +9,11 @@ interface ChallengeAttributes {
   title: string
   description: string
   type: string
-  goal_type: string
+  goal_type: 'steps' | 'calories' | 'distance' | 'activeMinutes' | 'custom'
   goal_value: number
   start_date: Date
   end_date: Date
+  duration: number
   status: 'active' | 'completed' | 'cancelled'
   reward_points: number
 }
@@ -22,12 +24,21 @@ class Challenge extends Model<ChallengeAttributes> implements ChallengeAttribute
   public title!: string
   public description!: string
   public type!: string
-  public goal_type!: string
+  public goal_type!: 'steps' | 'calories' | 'distance' | 'activeMinutes' | 'custom'
   public goal_value!: number
   public start_date!: Date
   public end_date!: Date
+  public duration!: number
   public status!: 'active' | 'completed' | 'cancelled'
   public reward_points!: number
+
+  // Add associations
+  public readonly ChallengeParticipants?: ChallengeParticipant[]
+  public getParticipants!: HasManyGetAssociationsMixin<ChallengeParticipant>
+
+  public static associations: {
+    ChallengeParticipants: Association<Challenge, ChallengeParticipant>
+  }
 }
 
 Challenge.init(
@@ -58,7 +69,7 @@ Challenge.init(
       allowNull: false
     },
     goal_type: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM('steps', 'calories', 'distance', 'activeMinutes', 'custom'),
       allowNull: false
     },
     goal_value: {
@@ -73,13 +84,18 @@ Challenge.init(
       type: DataTypes.DATE,
       allowNull: false
     },
+    duration: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     status: {
       type: DataTypes.ENUM('active', 'completed', 'cancelled'),
       defaultValue: 'active'
     },
     reward_points: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 0
     }
   },
   {
@@ -88,4 +104,11 @@ Challenge.init(
   }
 )
 
-export default Challenge 
+// Define associations
+Challenge.hasMany(ChallengeParticipant, {
+  sourceKey: 'id',
+  foreignKey: 'challenge_id',
+  as: 'ChallengeParticipants'
+});
+
+export default Challenge

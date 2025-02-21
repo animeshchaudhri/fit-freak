@@ -1,17 +1,43 @@
 import { ActivityType } from "./fitness.types"
 
+export type ChallengeGoalType = 'steps' | 'calories' | 'distance' | 'activeMinutes' | 'custom'
+export type ChallengeStatus = 'active' | 'completed' | 'cancelled'
+
+export interface CreateChallengeRequest {
+  title: string
+  description: string
+  goal_type: ChallengeGoalType
+  goal_value: number
+  duration: number
+  start_date?: Date
+  end_date?: Date
+  reward_points?: number
+  invited_users?: string[]
+}
+
 export interface ChallengeData {
   id: string
   title: string
   description: string
-  type: ActivityType
-  goal: number
-  startDate: Date
-  endDate: Date
-  points: number
+  goal_type: ChallengeGoalType
+  goal_value: number
+  start_date: Date
+  end_date: Date
+  duration: number
+  reward_points: number
   participants: number
-  creatorId: string
-  isActive: boolean
+  creator_id: string
+  status: ChallengeStatus
+}
+
+export interface ChallengeResponse {
+  message: string
+  data: ChallengeData
+}
+
+export interface ChallengeListResponse {
+  message: string
+  data: ChallengeData[]
 }
 
 export interface ChallengeParticipantData {
@@ -21,17 +47,6 @@ export interface ChallengeParticipantData {
   status: 'pending' | 'accepted' | 'rejected' | 'completed'
   progress: number
   joinedAt: Date
-}
-
-export interface CreateChallengeRequest {
-  title: string
-  description: string
-  type: ActivityType
-  goal: number
-  startDate: Date
-  endDate: Date
-  points: number
-  invitedUsers?: string[]
 }
 
 export interface CreateChallengeInput {
@@ -48,16 +63,6 @@ export interface CreateChallengeInput {
 
 export interface UpdateChallengeProgressInput {
   progress: number
-}
-
-export interface ChallengeResponse {
-  message: string
-  data: ChallengeData
-}
-
-export interface ChallengeListResponse {
-  message: string
-  data: ChallengeData[]
 }
 
 export interface ChallengeParticipantResponse {

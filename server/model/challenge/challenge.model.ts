@@ -9,40 +9,41 @@ import { v4 as uuidv4 } from 'uuid';
 import { ActivityType } from "../../types/fitness.types";
 
 export const createChallengeInDB = async (
-  data: CreateChallengeRequest & { creatorId: string }
+  data: CreateChallengeRequest & { creator_id: string }
 ): Promise<ChallengeData> => {
   const transaction = await sequelize.transaction();
   
   try {
     const challenge = await Challenge.create({
       id: uuidv4(),
-      creator_id: data.creatorId,
+      creator_id: data.creator_id,
       title: data.title,
       description: data.description,
-      type: data.type as string,
-      goal_type: 'default', 
-      goal_value: data.goal,
-      start_date: data.startDate,
-      end_date: data.endDate,
+      goal_type: data.goal_type,
+      goal_value: data.goal_value,
+      start_date: new Date(data.start_date!),
+      end_date: new Date(data.end_date!),
+      duration: data.duration,
       status: 'active',
-      reward_points: data.points
+      reward_points: data.reward_points || 0,
+      type: ""
     }, { transaction });
 
     await transaction.commit();
-    
     
     return {
       id: challenge.id,
       title: challenge.title,
       description: challenge.description,
-      type: challenge.type as ActivityType,
-      goal: challenge.goal_value,
-      startDate: challenge.start_date,
-      endDate: challenge.end_date,
-      points: challenge.reward_points,
-      participants: 0, // You might want to count this from participants table
-      creatorId: challenge.creator_id,
-      isActive: challenge.status === 'active'
+      goal_type: challenge.goal_type,
+      goal_value: challenge.goal_value,
+      start_date: challenge.start_date,
+      end_date: challenge.end_date,
+      duration: challenge.duration,
+      reward_points: challenge.reward_points,
+      participants: 0,
+      creator_id: challenge.creator_id,
+      status: challenge.status
     };
   } catch (error) {
     await transaction.rollback();
@@ -69,19 +70,19 @@ export const getChallengeByIdFromDB = async (
     
     if (!challenge) return null;
 
-    // Transform to match ChallengeData interface
     return {
       id: challenge.id,
       title: challenge.title,
       description: challenge.description,
-      type: challenge.type as ActivityType,
-      goal: challenge.goal_value,
-      startDate: challenge.start_date,
-      endDate: challenge.end_date,
-      points: challenge.reward_points,
-      participants: 0, // Count from participants
-      creatorId: challenge.creator_id,
-      isActive: challenge.status === 'active'
+      goal_type: challenge.goal_type,
+      goal_value: challenge.goal_value,
+      start_date: challenge.start_date,
+      end_date: challenge.end_date,
+      duration: challenge.duration,
+      reward_points: challenge.reward_points,
+      participants: challenge.ChallengeParticipants?.length || 0,
+      creator_id: challenge.creator_id,
+      status: challenge.status
     };
   } catch (error) {
     logger.error('Error in getChallengeByIdFromDB:', error);
@@ -97,25 +98,28 @@ export const getChallengeByIdFromDB = async (
 export const getUserChallengesFromDB = async (userId: string): Promise<ChallengeData[]> => {
   try {
     const challenges = await Challenge.findAll({
+      where: {
+        creator_id: userId
+      },
       include: [{
         model: ChallengeParticipant,
-        where: { user_id: userId }
+        attributes: ['user_id']
       }]
     });
-    
-    // Transform to match ChallengeData interface
+
     return challenges.map(challenge => ({
       id: challenge.id,
       title: challenge.title,
       description: challenge.description,
-      type: challenge.type as ActivityType,
-      goal: challenge.goal_value,
-      startDate: challenge.start_date,
-      endDate: challenge.end_date,
-      points: challenge.reward_points,
-      participants: 0, // Count from participants
-      creatorId: challenge.creator_id,
-      isActive: challenge.status === 'active'
+      goal_type: challenge.goal_type,
+      goal_value: challenge.goal_value,
+      start_date: challenge.start_date,
+      end_date: challenge.end_date,
+      duration: challenge.duration,
+      reward_points: challenge.reward_points,
+      participants: challenge.ChallengeParticipants?.length || 0,
+      creator_id: challenge.creator_id,
+      status: challenge.status
     }));
   } catch (error) {
     logger.error('Error in getUserChallengesFromDB:', error);
