@@ -10,6 +10,8 @@ import { sequelize } from "../config/database";
 import { QueryTypes } from "sequelize";
 import { AppError } from "../lib/appError";
 import logger from "../config/logger";
+import Challenge from "./user/challenge.schema";
+import ChallengeParticipant from "./user/challenge_participant.schema";
 
 const models = [
   "./user/user.schema",
@@ -18,6 +20,8 @@ const models = [
   "./user/user_details.schema",
   "./user/user_scores.schema",
   "./user/user_workouts.schema",
+  "./user/challenge.schema",
+  "./user/challenge_participant.schema",
 ];
 
 const instantiateModels = async (): Promise<void> => {
@@ -25,8 +29,9 @@ const instantiateModels = async (): Promise<void> => {
     await import(model);
   }
 
-  // Define relationships
-  User.hasOne(RefreshToken, {
+  
+   // Define relationships
+   User.hasOne(RefreshToken, {
     onDelete: "CASCADE",
     foreignKey: 'user_id',
   });
@@ -59,6 +64,25 @@ const instantiateModels = async (): Promise<void> => {
   UserWorkouts.belongsTo(User, {
     foreignKey: 'user_id'
   });
+  // Challenge relationships
+Challenge.belongsTo(User, {
+  foreignKey: 'creator_id',
+  as: 'creator'
+});
+
+Challenge.hasMany(ChallengeParticipant, {
+  foreignKey: 'challenge_id',
+  as: 'participants'
+});
+
+ChallengeParticipant.belongsTo(Challenge, {
+  foreignKey: 'challenge_id'
+});
+
+ChallengeParticipant.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+
 
  
 }

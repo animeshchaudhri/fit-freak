@@ -393,7 +393,7 @@ export const getFollowers = async (userId: string): Promise<UserData[]> => {
     const followers = await user.getFollowers({
       include: [{
         model: UserDetails,
-        attributes: ['first_name', 'last_name']
+        attributes: ['user_id','first_name', 'last_name',]
       }]
     });
 
@@ -414,7 +414,7 @@ export const getFollowing = async (userId: string): Promise<UserData[]> => {
     const following = await user.getFollowing({
       include: [{
         model: UserDetails,
-        attributes: ['first_name', 'last_name']
+        attributes: ['user_id','first_name', 'last_name']
       }]
     });
 
