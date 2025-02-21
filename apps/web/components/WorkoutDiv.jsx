@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
-import "./WorkoutDiv.css";
+import "../components/workout/WorkoutDiv.css";
 
 async function initializeTFJS() {
   await tf.setBackend("webgl");
@@ -14,9 +14,6 @@ async function initializeTFJS() {
 initializeTFJS();
 
 const WorkoutDiv = () => {
-  const repSound = new Audio('../src/assets/ding.wav');
-  const exerciseCompleteSound = new Audio('../src/assets/exercise-complete.wav');
-  const workoutCompleteSound = new Audio('../src/assets/workout-complete.wav');
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -110,14 +107,14 @@ const WorkoutDiv = () => {
 
   useEffect(() => {
     if (reps >= 10) {
-      exerciseCompleteSound.play().catch(err => console.log("Audio play error:", err));
+       console.log("Audio play error:", err);
       
       if (currentExerciseIndex < exercises.length - 1) {
         setCurrentExerciseIndex(prev => prev + 1);
       } else {
         setWorkoutComplete(true);
         setShowCompletionAnimation(true);
-        workoutCompleteSound.play().catch(err => console.log("Audio play error:", err));
+       console.log("Audio play error:", err)
         
         // Hide completion animation after 5 seconds
         setTimeout(() => {
@@ -128,7 +125,7 @@ const WorkoutDiv = () => {
       setReps(0);
     }
     else if (reps > 0 && reps % 5 === 0) {
-      repSound.play().catch((err) => console.log("Audio play error:", err));
+      console.log("Audio play error:", err);
     }
   }, [reps, currentExerciseIndex, exercises.length]);
 

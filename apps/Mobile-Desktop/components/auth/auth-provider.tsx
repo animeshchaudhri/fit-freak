@@ -4,12 +4,13 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { routes } from "@/lib/routes"
 import { User, AuthTokens, LoginResponse, RegisterResponse, UserResponse } from "@/types/auth.types"
-import { toast } from "sonner"
+
 import api from '@/lib/api-client'
 import { clearTokens, getAccessToken, saveTokens } from "@/utils/tokenManager"
 import { getNewAccessToken, isTokenExpired } from "@/utils/jwtUtils"
 import { useUserStore } from "@/store/userstore"
 import { clear } from "console"
+import { toast } from "sonner"
 
 interface AuthContextType {
   user: User | null

@@ -1,25 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* typescript-eslint-disable */
+// @ts-nocheck
 "use client"
 
-import React, { useRef, useState, useEffect } from "react";
-import * as poseDetection from "@tensorflow-models/pose-detection";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-webgl";
-import "./WorkoutDiv.css";
-import { Button } from "../ui/button";
-import { ArrowLeft } from "lucide-react";
-
-async function initializeTFJS() {
-  await tf.setBackend("webgl");
-  await tf.ready();
-  console.log("TensorFlow.js initialized with backend:", tf.getBackend());
-}
-
-initializeTFJS();
+import React, { useRef, useState, useEffect, useCallback } from "react"
+import * as poseDetection from "@tensorflow-models/pose-detection"
+import * as tf from "@tensorflow/tfjs-core"
+import "@tensorflow/tfjs-backend-webgl"
+import "./WorkoutDiv.css"
+import { Button } from "../ui/button"
+import { ArrowLeft, Loader } from "lucide-react"
 
 export function WorkoutView({ workout, onComplete }) {
-  const repSound = new Audio('../src/assets/ding.wav');
-  const exerciseCompleteSound = new Audio('../src/assets/exercise-complete.wav');
-  const workoutCompleteSound = new Audio('../src/assets/workout-complete.wav');
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -81,6 +77,32 @@ export function WorkoutView({ workout, onComplete }) {
   };
 
   useEffect(() => {
+    const initializeTF = async () => {
+      try {
+        await tf.setBackend("webgl")
+        await tf.ready()
+        console.log("TensorFlow.js initialized with backend:", tf.getBackend())
+        setIsLoading(false)
+      } catch (err) {
+        console.error("Failed to initialize TensorFlow:", err)
+        setError("Failed to initialize TensorFlow. Please refresh the page.")
+        setIsLoading(false)
+      }
+    }
+
+    initializeTF()
+  }, [])
+
+  const stopCamera = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraOn(false);
+  }, []);
+
+  useEffect(() => {
     const setupDetector = async () => {
       const detectorConfig = {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
@@ -98,8 +120,9 @@ export function WorkoutView({ workout, onComplete }) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      stopCamera(); 
     };
-  }, []);
+  }, [stopCamera]);
 
   useEffect(() => {
     if (currentExercise && exerciseInfo[currentExercise]) {
@@ -113,16 +136,16 @@ export function WorkoutView({ workout, onComplete }) {
 
   useEffect(() => {
     if (reps >= 10) {
-      exerciseCompleteSound.play().catch(err => console.log("Audio play error:", err));
+       console.log("Audio play error:", err);
       
       if (currentExerciseIndex < exercises.length - 1) {
         setCurrentExerciseIndex(prev => prev + 1);
       } else {
         setWorkoutComplete(true);
         setShowCompletionAnimation(true);
-        workoutCompleteSound.play().catch(err => console.log("Audio play error:", err));
+        console.log("Audio play error:", err)
         
-        // Hide completion animation after 5 seconds
+       
         setTimeout(() => {
           setShowCompletionAnimation(false);
         }, 5000);
@@ -131,7 +154,7 @@ export function WorkoutView({ workout, onComplete }) {
       setReps(0);
     }
     else if (reps > 0 && reps % 5 === 0) {
-      repSound.play().catch((err) => console.log("Audio play error:", err));
+      console.log("Audio play error:", err);
     }
   }, [reps, currentExerciseIndex, exercises.length]);
 
@@ -140,6 +163,13 @@ export function WorkoutView({ workout, onComplete }) {
       detectPose();
     }
   }, [isCameraOn, detector]);
+
+  useEffect(() => {
+    // Cleanup function for route changes
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
 
   const startCamera = async () => {
     if (isCameraOn) return;
@@ -373,6 +403,26 @@ export function WorkoutView({ workout, onComplete }) {
     runDetection();
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Initializing TensorFlow.js...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col items-center w-full max-w-7xl mx-auto">
       <div className="w-full bg-[#1a1f2e] rounded-2xl overflow-hidden shadow-2xl">
@@ -499,4 +549,4 @@ export function WorkoutView({ workout, onComplete }) {
       )}
     </div>
   );
-};
+}

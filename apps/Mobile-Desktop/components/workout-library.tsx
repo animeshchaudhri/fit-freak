@@ -1,33 +1,39 @@
+// @ts-nocheck
 "use client"
 
 import { useState } from "react"
-import { useRouter } from 'next/navigation' // Correct import for routing
+import { useRouter } from 'next/navigation' 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlaceholderImage } from "@/components/ui/placeholder-image"
 import { Play, Clock, Flame, Lock } from "lucide-react"
 import { WorkoutView } from "./workout/workout-view"
-
+import Image from "next/image"
+import { WORKOUT_IMAGES } from "@/lib/image-constants"
+import { imag } from "@tensorflow/tfjs-core"
 
 const workouts = [
   {
     name: "Arms Strength Workout",
+    image: WORKOUT_IMAGES.arms,
     duration: "10 min",
     level: "Intermediate",
     calories: "150",
     instructor: "jassi bassi",
-    route: "/armLiveWorkout", // Add route for the arms workout
+    route: "/armLiveWorkout", 
   },
   {
     name: "Full Body Blast",
+    image: WORKOUT_IMAGES.fullBody,
     duration: "10 min",
     level: "Advanced",
     calories: "200",
     instructor: "jaskeerat Singh",
-    route: "/fullBodyLiveWorkout", // Add route for the full body workout
+    route: "/fullBodyLiveWorkout", 
   },
   {
     name: "Core Crusher",
+    image: WORKOUT_IMAGES.core,
     duration: "20 min",
     level: "Beginner",
     calories: "180",
@@ -35,6 +41,7 @@ const workouts = [
   },
   {
     name: "Leg Day Burn",
+    image: WORKOUT_IMAGES.legs,
     duration: "30 min",
     level: "Intermediate",
     calories: "300",
@@ -42,6 +49,7 @@ const workouts = [
   },
   {
     name: "HIIT Cardio",
+    image: WORKOUT_IMAGES.hiit,
     duration: "25 min",
     level: "Advanced",
     calories: "350",
@@ -49,6 +57,7 @@ const workouts = [
   },
   {
     name: "Flexibility Flow",
+    image: WORKOUT_IMAGES.flexibility,
     duration: "40 min",
     level: "Beginner",
     calories: "220",
@@ -56,6 +65,7 @@ const workouts = [
   },
   {
     name: "Plank & Core Challenge",
+    image: WORKOUT_IMAGES.plank,
     duration: "15 min",
     level: "Intermediate",
     calories: "130",
@@ -63,6 +73,7 @@ const workouts = [
   },
   {
     name: "Evening Walk & Stretch",
+    image: WORKOUT_IMAGES.fullBody,
     duration: "30 min",
     level: "Beginner",
     calories: "170",
@@ -101,7 +112,14 @@ export function WorkoutLibrary() {
             }`}
           >
             <div className="relative aspect-video">
-              <PlaceholderImage className="absolute inset-0" />
+              <Image
+                src={workout.image}
+                alt={workout.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={index < 2}
+              />
             </div>
             <div className="p-5 space-y-4">
               <div>
