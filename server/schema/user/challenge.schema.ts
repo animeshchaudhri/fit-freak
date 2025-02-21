@@ -110,16 +110,6 @@ Challenge.init(
   }
 )
 
-// Define associations
-Challenge.hasMany(ChallengeParticipant, {
-  sourceKey: 'id',
-  foreignKey: 'challenge_id',
-  as: 'participants'
-});
 
-Challenge.belongsTo(User, {
-  foreignKey: 'creator_id',
-  as: 'creator'
-});
 
 export default Challenge

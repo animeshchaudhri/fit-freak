@@ -70,14 +70,6 @@ ChallengeParticipant.init(
   }
 )
 
-ChallengeParticipant.belongsTo(Challenge, {
-  foreignKey: 'challenge_id',
-  as: 'challenge'
-});
 
-ChallengeParticipant.belongsTo(User, {
-  foreignKey: 'user_id',
-  as: 'user'
-});
 
 export default ChallengeParticipant
