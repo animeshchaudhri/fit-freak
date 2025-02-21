@@ -7,6 +7,7 @@ import { ChallengeData, CreateChallengeRequest } from "../../types/challenge.typ
 import logger from "../../config/logger";
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityType } from "../../types/fitness.types";
+import User from "../../schema/user/user.schema";
 
 export const createChallengeInDB = async (
   data: CreateChallengeRequest & { creator_id: string }
@@ -103,9 +104,18 @@ export const getUserChallengesFromDB = async (userId: string): Promise<Challenge
       },
       include: [{
         model: ChallengeParticipant,
-        attributes: ['user_id']
+        as: 'participants',
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email']
+        }]
       }]
     });
+
+    if (!challenges) {
+      return [];
+    }
 
     return challenges.map(challenge => ({
       id: challenge.id,
@@ -117,7 +127,7 @@ export const getUserChallengesFromDB = async (userId: string): Promise<Challenge
       end_date: challenge.end_date,
       duration: challenge.duration,
       reward_points: challenge.reward_points,
-      participants: challenge.ChallengeParticipants?.length || 0,
+      participants: challenge.participants?.length || 0,
       creator_id: challenge.creator_id,
       status: challenge.status
     }));
@@ -188,6 +198,60 @@ export const updateChallengeProgressInDB = async (
       "Database Error",
       500,
       "Error updating challenge progress",
+      true
+    );
+  }
+};
+
+export const getChallengeLeaderboard = async (challengeId: string) => {
+  try {
+    const leaderboard = await ChallengeParticipant.findAll({
+      where: {
+        challenge_id: challengeId,
+        status: 'accepted'
+      },
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email', 'profile_picture']
+      }],
+      attributes: ['progress', 'joined_at'],
+      order: [['progress', 'DESC']],
+    });
+    
+    return leaderboard;
+  } catch (error) {
+    logger.error('Error in getChallengeLeaderboard:', error);
+    throw new AppError(
+      "Database Error",
+      500,
+      "Error fetching challenge leaderboard",
+      true
+    );
+  }
+};
+
+export const getChallengeParticipants = async (challengeId: string) => {
+  try {
+    const participants = await ChallengeParticipant.findAll({
+      where: {
+        challenge_id: challengeId
+      },
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email', 'profile_picture']
+      }],
+      attributes: ['status', 'progress', 'joined_at']
+    });
+
+    return participants;
+  } catch (error) {
+    logger.error('Error in getChallengeParticipants:', error);
+    throw new AppError(
+      "Database Error",
+      500,
+      "Error fetching challenge participants",
       true
     );
   }

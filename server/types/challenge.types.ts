@@ -68,4 +68,31 @@ export interface UpdateChallengeProgressInput {
 export interface ChallengeParticipantResponse {
   message: string
   data: ChallengeParticipantData | null
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  profilePicture?: string;
+  progress: number;
+  joinedAt: Date;
+}
+
+export interface ParticipantData {
+  userId: string;
+  name: string;
+  profilePicture?: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  progress: number;
+  joinedAt: Date;
+}
+
+export interface LeaderboardResponse {
+  message: string;
+  data: LeaderboardEntry[];
+}
+
+export interface ParticipantsResponse {
+  message: string;
+  data: ParticipantData[];
 } 

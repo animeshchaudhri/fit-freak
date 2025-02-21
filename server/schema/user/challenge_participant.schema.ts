@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize'
+import { DataTypes, Model, Association } from 'sequelize'
 import { sequelize } from '../../config/database'
 import Challenge from './challenge.schema'
 import User from './user.schema'
@@ -10,6 +10,7 @@ interface ChallengeParticipantAttributes {
   status: 'pending' | 'accepted' | 'rejected' | 'completed'
   progress: number
   joined_at: Date
+  user?: User
 }
 
 class ChallengeParticipant extends Model<ChallengeParticipantAttributes> implements ChallengeParticipantAttributes {
@@ -19,6 +20,12 @@ class ChallengeParticipant extends Model<ChallengeParticipantAttributes> impleme
   public status!: 'pending' | 'accepted' | 'rejected' | 'completed'
   public progress!: number
   public joined_at!: Date
+  
+  public readonly user?: User
+
+  public static associations: {
+    user: Association<ChallengeParticipant, User>
+  }
 }
 
 ChallengeParticipant.init(
@@ -62,5 +69,15 @@ ChallengeParticipant.init(
     modelName: 'challenge_participant'
   }
 )
+
+ChallengeParticipant.belongsTo(Challenge, {
+  foreignKey: 'challenge_id',
+  as: 'challenge'
+});
+
+ChallengeParticipant.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
 
 export default ChallengeParticipant
