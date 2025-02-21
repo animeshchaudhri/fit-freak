@@ -1,48 +1,127 @@
-import { Challenges } from "@/components/challenges/challenges"
-import Image from "next/image"
+// @ts-nocheck
+"use client"
 
-export default function ChallengesPage() {
+import { useState } from "react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Play, Clock, Flame } from "lucide-react"
+import Image from "next/image"
+import { WORKOUT_IMAGES } from "@/lib/image-constants"
+
+const exercises = [
+  {
+    name: "Push-Ups",
+    image: WORKOUT_IMAGES.pushups,
+    duration: "5 min",
+    level: "Beginner",
+    calories: "50",
+    instructor: "Trainer Alex",
+    route: "/pushupsLive",
+  },
+  {
+    name: "Pull-Ups",
+    image: WORKOUT_IMAGES.pullups,
+    duration: "10 min",
+    level: "Intermediate",
+    calories: "100",
+    instructor: "Coach Ryan",
+    route: "/pullupsLive",
+  },
+  {
+    name: "Shoulder Press",
+    image: WORKOUT_IMAGES.shoulderPress,
+    duration: "8 min",
+    level: "Advanced",
+    calories: "120",
+    instructor: "Coach Sarah",
+  },
+  {
+    name: "Squats",
+    image: WORKOUT_IMAGES.squats,
+    duration: "12 min",
+    level: "Beginner",
+    calories: "80",
+    instructor: "Trainer Mike",
+  },
+  {
+    name: "Plank Hold",
+    image: WORKOUT_IMAGES.plank,
+    duration: "3 min",
+    level: "Advanced",
+    calories: "40",
+    instructor: "Coach Emma",
+  },
+  {
+    name: "Lunges",
+    image: WORKOUT_IMAGES.lunges,
+    duration: "7 min",
+    level: "Intermediate",
+    calories: "90",
+    instructor: "Trainer Sophia",
+  }
+];
+
+export default function ExerciseLibrary() {
+  const [selectedExercise, setSelectedExercise] = useState(null)
+
+  if (selectedExercise) {
+    return (
+      <ExerciseView 
+        exercise={selectedExercise}
+        onComplete={() => setSelectedExercise(null)}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold lg:text-3xl">Challenges</h1>
-          <p className="text-gray-400 mt-1">Join and track your fitness challenges</p>
-        </div>
-        <div className="flex gap-4">
-          <select className="bg-gray-800/50 border-0 rounded-lg px-4 py-2">
-            <option>All Challenges</option>
-            <option>Active</option>
-            <option>Completed</option>
-          </select>
-        </div>
+      <div className="flex justify-between items-center py-20">
+        <h2 className="text-2xl font-bold">Exercise Library</h2>
+        <Button variant="outline">Filter</Button>
       </div>
-
-      {/* Featured Challenge */}
-      <div className="relative h-[200px] lg:h-[300px] rounded-2xl overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&auto=format&fit=crop&q=60"
-          alt="Featured Challenge"
-          className="w-full h-full object-cover"
-          width={800}
-          height={300}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center p-8">
-          <div className="max-w-xl">
-            <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium mb-4 inline-block">
-              Featured Challenge
-            </span>
-            <h2 className="text-2xl lg:text-3xl font-bold mb-2">Summer Fitness Challenge</h2>
-            <p className="text-gray-200 mb-4">Join thousands of others in this 30-day challenge</p>
-            <button className="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg transition-colors">
-              Join Now
-            </button>
-          </div>
-        </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {exercises.map((exercise, index) => (
+          <Card
+            key={index}
+            className="overflow-hidden border-0 transition-all shadow-lg shadow-blue-400/50 animate-slow-bounce cursor-pointer bg-gray-800/70"
+          >
+            <div className="relative aspect-video">
+              <Image
+                src={exercise.image}
+                alt={exercise.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={index < 2}
+              />
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">{exercise.name}</h3>
+                <p className="text-sm text-gray-400">with {exercise.instructor}</p>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-gray-300">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  {exercise.duration}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Flame className="w-4 h-4" />
+                  {exercise.calories} cal
+                </div>
+              </div>
+              <Button
+                className="w-full gap-2"
+                onClick={() => setSelectedExercise(exercise)}
+              >
+                Start Exercise
+                <Play className="w-4 h-4" />
+              </Button>
+            </div>
+          </Card>
+        ))}
       </div>
-
-      <Challenges />
     </div>
   )
 }
-

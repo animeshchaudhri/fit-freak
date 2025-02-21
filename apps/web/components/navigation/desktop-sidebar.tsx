@@ -11,10 +11,11 @@ import { useUserStore } from "@/store/userstore"
 
 const navItems = [
   { icon: Activity, label: "Activity", href: routes.activity },
-  { icon: Dumbbell, label: "Workouts", href: routes.workouts },
-  { icon: Trophy, label: "Challenges", href: routes.challenges },
+  { icon: Dumbbell, label: "Workouts Module", href: routes.workouts },
+  { icon: Trophy, label: "Instant Workout", href: routes.challenges },
   { icon: Video, label: "Live", href: routes.live },
   { icon: User, label: "Profile", href: routes.profile },
+  { icon: User, label: "Dashboard", href: routes.dashboard },
 ]
 
 export function DesktopSidebar({ className }: { className?: string }) {

@@ -5,4 +5,5 @@ export const routes = {
   challenges: "/challenges",
   live: "/live",
   profile: "/profile",
+  dashboard: "/dashboard",
 } 
