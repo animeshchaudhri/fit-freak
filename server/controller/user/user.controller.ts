@@ -167,3 +167,34 @@ export const getUserDetailsController: RequestHandler = async (
     next(error);
   } 
 };
+
+
+// export const followUserController = async (req: Request, res: Response) => {
+//   try {
+//     const { userId } = req.params;
+//     const currentUser = await User.findByPk(req.user.id);
+//     const userToFollow = await User.findByPk(userId);
+
+//     if (!userToFollow) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     await currentUser.addFollowing(userToFollow);
+//     return res.status(200).json({ message: 'Successfully followed user' });
+//   } catch (error) {
+//     return res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+// export const friendsLeaderboardController = async (req: Request, res: Response) => {
+//   try {
+//     const leaderboardData = await getFriendsLeaderboard(req.user.id);
+
+//     return res.status(200).json({
+//       message: 'Friends leaderboard retrieved successfully',
+//       data: leaderboardData
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ message: 'Internal server error' });
+//   }
+// };

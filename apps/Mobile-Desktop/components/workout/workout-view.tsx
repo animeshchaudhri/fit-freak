@@ -77,7 +77,27 @@ export function WorkoutView({ workout, onComplete }) {
       }
     }
   };
-
+  const saveWorkoutData = async () => {
+    try {
+      const workoutData = {
+        calories_burned: reps * 5, // Estimate calories based on reps
+        number_workouts: exercises.length // Total number of exercises completed
+      }
+  
+      await axios.post('/api/v1/user/user-workout', workoutData, {
+        headers: {
+          'Content-Type': 'application/json',
+          // Add your auth header here if needed
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+  
+      toast.success('Workout data saved successfully!');
+    } catch (error) {
+      console.error('Error saving workout data:', error);
+      toast.error('Failed to save workout data');
+    }
+  }
   useEffect(() => {
     const initializeTF = async () => {
       try {
@@ -145,7 +165,8 @@ export function WorkoutView({ workout, onComplete }) {
       } else {
         setWorkoutComplete(true);
         setShowCompletionAnimation(true);
-        workoutCompleteSound.play().catch(err => console.log("Audio play error:", err));
+        // workoutCompleteSound.play().catch(err => console.log("Audio play error:", err));
+        saveWorkoutData();
         
        
         setTimeout(() => {

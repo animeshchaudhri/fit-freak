@@ -218,3 +218,11 @@ export const getUserWorkouts= async (userId: string): Promise<userWorkoutData | 
       throw new AppError("error getting leaderboard", 500, "Something went wrong", true);
     }
   }
+  // export const getFriendsLeaderboard = async (userId: string): Promise<allleaderboardData| null> => {
+  //   try {
+  //   const leaderboard = await getLeaderBoadofFriends(use);
+  //   return leaderboard;
+  //   } catch (error) {
+  //     throw new AppError("error getting leaderboard", 500, "Something went wrong", true);
+  //   }
+  // }

@@ -289,3 +289,55 @@ export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
     );
   }
 };
+// export const getLeaderBoadofFriends = async (userId: string): Promise<allUserWorkoutData> => {
+
+//   try{
+//   const currentUser = await User.findByPk(userId);
+//   if (!currentUser) {
+//     throw new AppError("User not found", 404, "User not found", false);
+//   }
+//   const following = await currentUser.getFollowing();
+//   const followingIds = following.map(user => user.id);
+  
+//   followingIds.push(currentUser.id);
+
+//   const leaderboardData = await User.findAll({
+//     where: {
+//       id: followingIds
+//     },
+//     include: [{
+//       model: UserWorkouts,
+//       attributes: []
+//     }],
+//     attributes: [
+//       'id',
+//       'first_name',
+//       'last_name',
+//       [sequelize.fn('SUM', sequelize.col('UserWorkouts.calories_burned')), 'total_calories'],
+//       [sequelize.fn('COUNT', sequelize.col('UserWorkouts.id')), 'workout_count']
+//     ],
+//     group: ['User.id'],
+//     order: [[sequelize.literal('total_calories'), 'DESC']]
+//   });
+//   const allWorkoutData: allUserWorkoutData = leaderboardData.map((user: any) => ({
+//     id: user.id,
+//     first_name: user.first_name,
+//     last_name: user.last_name,
+//     total_calories: parseInt(user.getDataValue("total_calories"), 10) || 0,
+//     workout_count: parseInt(user.getDataValue("workout_count"), 10) || 0,
+//   }));
+
+//   return allWorkoutData;
+//   return leaderboardData;
+//   }
+//   catch (error) {
+//     logger.error(`Error getting friends leaderboard data:`, error);
+//     throw new AppError(
+//       "Database Error",
+//       500,
+//       "Error getting friends leaderboard data",
+//       true
+//     );
+//   }
+
+// }
