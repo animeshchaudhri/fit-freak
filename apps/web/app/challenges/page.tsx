@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Play, Clock, Flame } from "lucide-react"
 import Image from "next/image"
 import { WORKOUT_IMAGES } from "@/lib/image-constants"
+import WorkoutComponentDynamic from "@/components/WorkoutComponentDynamic"
 
 const exercises = [
   {
@@ -34,6 +35,7 @@ const exercises = [
     level: "Advanced",
     calories: "120",
     instructor: "Coach Sarah",
+    route: "/shoulderPressLive",
   },
   {
     name: "Squats",
@@ -42,6 +44,7 @@ const exercises = [
     level: "Beginner",
     calories: "80",
     instructor: "Trainer Mike",
+    route: "/squatsLive",
   },
   {
     name: "Plank Hold",
@@ -50,6 +53,7 @@ const exercises = [
     level: "Advanced",
     calories: "40",
     instructor: "Coach Emma",
+    route: "/plankLive",
   },
   {
     name: "Lunges",
@@ -58,11 +62,21 @@ const exercises = [
     level: "Intermediate",
     calories: "90",
     instructor: "Trainer Sophia",
+    route: "/lungesLive",
   }
 ];
 
+function ExerciseView({ exercise, onComplete }) {
+  return (
+    <WorkoutComponentDynamic
+      exercise={exercise}
+      onBack={onComplete}
+    />
+  );
+}
+
 export default function ExerciseLibrary() {
-  const [selectedExercise, setSelectedExercise] = useState(null)
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
   if (selectedExercise) {
     return (
