@@ -64,12 +64,28 @@ const instantiateModels = async (): Promise<void> => {
   UserWorkouts.belongsTo(User, {
     foreignKey: 'user_id'
   });
-  // Challenge relationships
+ 
 Challenge.belongsTo(User, {
   foreignKey: 'creator_id',
   as: 'creator'
 });
 
+Challenge.hasMany(ChallengeParticipant, {
+  sourceKey: 'id',
+  foreignKey: 'challenge_id',
+  as: 'participants'
+});
+
+
+ChallengeParticipant.belongsTo(Challenge, {
+  foreignKey: 'challenge_id',
+  as: 'challenge'
+});
+
+ChallengeParticipant.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
 UserWorkouts.belongsTo(UserDetails, {
   foreignKey: 'user_id',
   targetKey: 'user_id',
@@ -80,22 +96,9 @@ User.hasMany(ChallengeParticipant, {
   as: 'participatedChallenges'
 });
 
-Challenge.hasMany(ChallengeParticipant, {
-  foreignKey: 'challenge_id',
-  as: 'participants'
-});
-
-ChallengeParticipant.belongsTo(Challenge, {
-  foreignKey: 'challenge_id'
-});
-
-ChallengeParticipant.belongsTo(User, {
-  foreignKey: 'user_id'
-});
-
-
+};
  
-}
+
 
 
 
