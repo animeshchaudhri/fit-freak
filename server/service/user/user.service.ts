@@ -1,6 +1,6 @@
 import { AppError } from "../../lib/appError";
-import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB, userWorkoutDetailsCreateInDB, getallworkoutData, getLeaderBoardData, getLeaderBoadofFriends } from "../../model/user/user.model";
-import { allleaderboardData, allUserWorkoutData, authTokens, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
+import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB, userWorkoutDetailsCreateInDB, getallworkoutData, getLeaderBoardData, getLeaderBoadofFriends, getUsers } from "../../model/user/user.model";
+import { allleaderboardData, alluserData, allUserWorkoutData, authTokens, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import commonErrorsDictionary from "../../utils/error/commonErrors";
 import { hashPassword } from "../../utils/password";
 import { v4 as uuid } from "uuid";
@@ -129,6 +129,15 @@ export const registerUser = async (user: {
     };
   };
 
+export const getallUsers = async (): Promise<alluserData | null> => {
+  const user = await getUsers();
+  if (!user) {
+    throw new AppError("User not found", 404, "User not found", false);
+  }
+
+ 
+  return user;
+}
 export const getUserInfo = async (userId: string): Promise<userLoginData | null> => {
   const user = await getUserbyId(userId);
   if (!user) {

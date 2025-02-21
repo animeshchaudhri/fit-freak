@@ -5,6 +5,9 @@ export type UserData = {
   email: string;
 };
 
+export type alluserData ={
+  userData: userDetailedData[];
+}
 export type userLoginData = {
   email: string;
   onboarding_completed?: boolean;

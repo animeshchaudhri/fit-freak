@@ -626,5 +626,45 @@ router.get("/followers", authenticateUser(), validateRequest, getFollowersContro
  *                     $ref: '#/components/schemas/User'
  */
 router.get("/following", authenticateUser(), validateRequest, getFollowingController);
+/**
+ * @swagger
+ * /v1/user/allusers:
+ *   get:
+ *     summary: Get all users in the system
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Users retrieved successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       email:
+ *                         type: string
+ *                         format: email
+ *                       first_name:
+ *                         type: string
+ *                       last_name:
+ *                         type: string
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/allusers", authenticateUser(), validateRequest, userInfoController);
 
 export default router;

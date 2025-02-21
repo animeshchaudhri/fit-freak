@@ -6,7 +6,7 @@ import Password from "../../schema/user/password.schema";
 import RefreshToken from "../../schema/user/refreshToken.schema";
 import User from "../../schema/user/user.schema";
 import UserDetails from "../../schema/user/user_details.schema";
-import { allleaderboardData, allUserWorkoutData, LeaderboardData, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
+import { allleaderboardData, alluserData, allUserWorkoutData, LeaderboardData, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import { v4 as uuidv4 } from 'uuid';
 import UserWorkouts from "../../schema/user/user_workouts.schema";
 
@@ -113,6 +113,28 @@ export const createUser = async (userData: {
     }
   };
   
+export const getUsers = async (): Promise<alluserData | null> => {
+    try {
+      const users = await UserDetails.findAll({
+        include: [
+          {
+            model: UserDetails,
+          },
+        ],
+        raw: true,
+      });
+      return {userData:users};
+    } catch (error) {
+      throw new AppError(
+        "error getting all users",
+        500,
+        "Something went wrong",
+        false
+      );
+    }
+  }
+
+
 export const getUserbyId = async (id: string): Promise<userLoginData | null> => {
   try {
     logger.info(`Getting user by id: ${id}`);
