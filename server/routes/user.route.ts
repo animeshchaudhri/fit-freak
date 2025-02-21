@@ -2,7 +2,7 @@ import express from "express";
 import type { Router } from "express";
 import { validateUserLogin, validateUserRegister } from "../lib/validator";
 import { validateRequest } from "../utils/validateRequest";
-import { getUserDetailsController, leaderboardController, loginUserController, registerUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
+import { followUserController, getFollowersController, getFollowingController, getUserDetailsController, leaderboardController, loginUserController, registerUserController, unfollowUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
 import { validateUserCreate, validateWorkoutCreate } from "../lib/validator/user/validator";
 import { authenticateUser } from "../middleware/Auth";
 
@@ -480,72 +480,151 @@ router.get("/user-workout", authenticateUser(), validateRequest, userWorkoutGetC
  */
 router.get("/leaderboard", authenticateUser(), validateRequest, leaderboardController);
 
-// /**
-//  * @swagger
-//  * /v1/user/{userId}/follow:
-//  *   post:
-//  *     summary: Follow a user
-//  *     tags: [Users]
-//  *     security:
-//  *       - bearerAuth: []
-//  *     parameters:
-//  *       - in: path
-//  *         name: userId
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *           format: uuid
-//  *     responses:
-//  *       200:
-//  *         description: Successfully followed user
-//  *       401:
-//  *         description: Unauthorized
-//  *       404:
-//  *         description: User not found
-//  */
-// router.post("/:userId/follow", authenticateUser(), validateRequest, followUserController);
+router.post("/:userId/follow", authenticateUser(), validateRequest, followUserController);
 
-// /**
-//  * @swagger
-//  * /v1/user/friends-leaderboard:
-//  *   get:
-//  *     summary: Get leaderboard rankings for friends only
-//  *     tags: [Users]
-//  *     security:
-//  *       - bearerAuth: []
-//  *     responses:
-//  *       200:
-//  *         description: Friends leaderboard retrieved successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 message:
-//  *                   type: string
-//  *                 data:
-//  *                   type: array
-//  *                   items:
-//  *                     type: object
-//  *                     properties:
-//  *                       user:
-//  *                         type: object
-//  *                         properties:
-//  *                           id:
-//  *                             type: string
-//  *                           first_name:
-//  *                             type: string
-//  *                           last_name:
-//  *                             type: string
-//  *                           calories_burned:
-//  *                             type: number
-//  *                           number_workouts:
-//  *                             type: number
-//  *                       rank:
-//  *                         type: number
-//  *       401:
-//  *         description: Unauthorized
-//  */
-// router.get("/friends-leaderboard", authenticateUser(), validateRequest, friendsLeaderboardController);
+/**
+ * @swagger
+ * /v1/user/friends-leaderboard:
+ *   get:
+ *     summary: Get leaderboard rankings for friends only
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Friends leaderboard retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           first_name:
+ *                             type: string
+ *                           last_name:
+ *                             type: string
+ *                           calories_burned:
+ *                             type: number
+ *                           number_workouts:
+ *                             type: number
+ *                       rank:
+ *                         type: number
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/friends-leaderboard", authenticateUser(), validateRequest, );
+
+
+// Add these routes
+/**
+ * @swagger
+ * /v1/user/follow/{userId}:
+ *   post:
+ *     summary: Follow a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Successfully followed user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/follow/:userId", authenticateUser(), validateRequest, followUserController);
+
+/**
+ * @swagger
+ * /v1/user/unfollow/{userId}:
+ *   post:
+ *     summary: Unfollow a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Successfully unfollowed user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/unfollow/:userId", authenticateUser(), validateRequest, unfollowUserController);
+
+/**
+ * @swagger
+ * /v1/user/followers:
+ *   get:
+ *     summary: Get user's followers
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of followers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ */
+router.get("/followers", authenticateUser(), validateRequest, getFollowersController);
+
+/**
+ * @swagger
+ * /v1/user/following:
+ *   get:
+ *     summary: Get users being followed
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of following retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ */
+router.get("/following", authenticateUser(), validateRequest, getFollowingController);
 
 export default router;

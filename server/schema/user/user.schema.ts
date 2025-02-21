@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize'
+import { BelongsToManyAddAssociationMixinOptions, BelongsToManyRemoveAssociationMixinOptions, DataTypes, FindOptions, Model } from 'sequelize'
 import { sequelize } from '../../config/database'
 
 interface UserAttributes {
@@ -9,14 +9,13 @@ interface UserAttributes {
 class User extends Model<UserAttributes> implements UserAttributes {
   public id!: string;
   public email!: string;
-  
-  // Declare association methods
-  public getFollowers!: () => Promise<User[]>;
-  public getFollowing!: () => Promise<User[]>;
-  public addFollower!: (follower: User) => Promise<void>;
-  public addFollowing!: (following: User) => Promise<void>;
-  public removeFollower!: (follower: User) => Promise<void>;
-  public removeFollowing!: (following: User) => Promise<void>;
+ 
+  public getFollowers!: (options?: FindOptions) => Promise<User[]>;
+  public getFollowing!: (options?: FindOptions) => Promise<User[]>;
+  public addFollower!: (follower: User, options?: BelongsToManyAddAssociationMixinOptions) => Promise<void>;
+  public addFollowing!: (following: User, options?: BelongsToManyAddAssociationMixinOptions) => Promise<void>;
+  public removeFollower!: (follower: User, options?: BelongsToManyRemoveAssociationMixinOptions) => Promise<void>;
+  public removeFollowing!: (following: User, options?: BelongsToManyRemoveAssociationMixinOptions) => Promise<void>;
 }
 
 User.init(
@@ -39,7 +38,6 @@ User.init(
   }
 );
 
-// Set up self-referential many-to-many relationship
 User.belongsToMany(User, {
   as: 'followers',
   through: 'UserFollowers',

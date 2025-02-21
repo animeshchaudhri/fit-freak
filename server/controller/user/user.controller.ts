@@ -4,7 +4,8 @@ import {
     type RequestHandler,
     type Response,
   } from "express";
-import { createUserWorkout, getLeaderboard, getUserDetails, getUserInfo, getUserWorkouts, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
+import { createUserWorkout, getFriendsLeaderboard, getLeaderboard, getUserDetails, getUserInfo, getUserWorkouts, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
+import { followUser, getFollowers, getFollowing, unfollowUser } from "../../model/user/user.model";
 
 
 
@@ -169,32 +170,85 @@ export const getUserDetailsController: RequestHandler = async (
 };
 
 
-// export const followUserController = async (req: Request, res: Response) => {
-//   try {
-//     const { userId } = req.params;
-//     const currentUser = await User.findByPk(req.user.id);
-//     const userToFollow = await User.findByPk(userId);
+export const friendLeaderboardController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const leaderboard = await getFriendsLeaderboard(req.user.userId);
+    return res.status(200).json({
+      message: "Leaderboard fetched successfully",
+      data: leaderboard,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const followUserController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.params;
+    await followUser(req.user.userId, userId);
+    
+    return res.status(200).json({
+      message: "Successfully followed user"
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-//     if (!userToFollow) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
+export const unfollowUserController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.params;
+    await unfollowUser(req.user.userId, userId);
+    
+    return res.status(200).json({
+      message: "Successfully unfollowed user"
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-//     await currentUser.addFollowing(userToFollow);
-//     return res.status(200).json({ message: 'Successfully followed user' });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
+export const getFollowersController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const followers = await getFollowers(req.user.userId);
+    
+    return res.status(200).json({
+      message: "Followers retrieved successfully",
+      data: followers
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// export const friendsLeaderboardController = async (req: Request, res: Response) => {
-//   try {
-//     const leaderboardData = await getFriendsLeaderboard(req.user.id);
-
-//     return res.status(200).json({
-//       message: 'Friends leaderboard retrieved successfully',
-//       data: leaderboardData
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
+export const getFollowingController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const following = await getFollowing(req.user.userId);
+    
+    return res.status(200).json({
+      message: "Following list retrieved successfully",
+      data: following
+    });
+  } catch (error) {
+    next(error);
+  }
+};

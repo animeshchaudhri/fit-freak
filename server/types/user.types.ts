@@ -32,8 +32,11 @@ export type allleaderboardData={
 }
 
 export type LeaderboardData = {
-  user: userWorkoutData
-  rank: number
+  first_name: string;
+  last_name:string;
+  calories_burned: number;
+  numebr_workouts: number;
+  rank: number;
 }
 
 export type userWorkoutData = {

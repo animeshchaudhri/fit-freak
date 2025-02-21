@@ -262,17 +262,22 @@ export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
       order: [
         ['calories_burned', 'DESC']
       ],
+      include: [{
+        model: UserDetails,
+        where: {
+          user_id: sequelize.col('UserWorkouts.user_id')
+        }
+      }],
       raw: true
     });
 
     const leaderboardData: LeaderboardData[] = workouts.map((workout, index) => ({
-      user: {
-        id: workout.id,
-        user_id: workout.user_id,
-        calories_burned: workout.calories_burned,
-        number_workouts: workout.number_workouts
-      },
-      rank: index + 1
+      first_name: (workout as any)['user_details.first_name'],
+      last_name: (workout as any)['user_details.last_name'],
+      calories_burned: workout.calories_burned,
+      numebr_workouts: workout.number_workouts,
+      rank: index + 1,
+      
     }));
 
     return {
@@ -289,55 +294,133 @@ export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
     );
   }
 };
-// export const getLeaderBoadofFriends = async (userId: string): Promise<allUserWorkoutData> => {
+export const getLeaderBoadofFriends = async (userId: string): Promise<allleaderboardData> => {
 
-//   try{
-//   const currentUser = await User.findByPk(userId);
-//   if (!currentUser) {
-//     throw new AppError("User not found", 404, "User not found", false);
-//   }
-//   const following = await currentUser.getFollowing();
-//   const followingIds = following.map(user => user.id);
+  try{
+  const currentUser = await User.findByPk(userId);
+  if (!currentUser) {
+    throw new AppError("User not found", 404, "User not found", false);
+  }
+  const following = await currentUser.getFollowing();
+  const followingIds = following.map(user => user.id);
   
-//   followingIds.push(currentUser.id);
+  followingIds.push(currentUser.id);
 
-//   const leaderboardData = await User.findAll({
-//     where: {
-//       id: followingIds
-//     },
-//     include: [{
-//       model: UserWorkouts,
-//       attributes: []
-//     }],
-//     attributes: [
-//       'id',
-//       'first_name',
-//       'last_name',
-//       [sequelize.fn('SUM', sequelize.col('UserWorkouts.calories_burned')), 'total_calories'],
-//       [sequelize.fn('COUNT', sequelize.col('UserWorkouts.id')), 'workout_count']
-//     ],
-//     group: ['User.id'],
-//     order: [[sequelize.literal('total_calories'), 'DESC']]
-//   });
-//   const allWorkoutData: allUserWorkoutData = leaderboardData.map((user: any) => ({
-//     id: user.id,
-//     first_name: user.first_name,
-//     last_name: user.last_name,
-//     total_calories: parseInt(user.getDataValue("total_calories"), 10) || 0,
-//     workout_count: parseInt(user.getDataValue("workout_count"), 10) || 0,
-//   }));
+  const workouts = await UserWorkouts.findAll({
+    where: {
+      user_id: followingIds
+    },
+    order: [
+      ['calories_burned', 'DESC']
+    ],
+    include: [{
+      model: UserDetails,
+      where: {
+        user_id: sequelize.col('UserWorkouts.user_id')
+      }
+    }],
+    raw: true
+  });
+  const friendLeaderboard: LeaderboardData[] = workouts.map((workout, index) => ({
+    first_name: (workout as any)['user_details.first_name'],
+    last_name: (workout as any)['user_details.last_name'],
+    calories_burned: workout.calories_burned,
+    numebr_workouts: workout.number_workouts,
+    rank: index + 1,
+  }));
+  return { leaderboardData: friendLeaderboard};
+ 
+  }
+  catch (error) {
+    logger.error(`Error getting friends leaderboard data:`, error);
+    throw new AppError(
+      "Database Error",
+      500,
+      "Error getting friends leaderboard data",
+      true
+    );
+  }
 
-//   return allWorkoutData;
-//   return leaderboardData;
-//   }
-//   catch (error) {
-//     logger.error(`Error getting friends leaderboard data:`, error);
-//     throw new AppError(
-//       "Database Error",
-//       500,
-//       "Error getting friends leaderboard data",
-//       true
-//     );
-//   }
+}
 
-// }
+export const followUser = async (followerId: string, followingId: string): Promise<boolean> => {
+  const transaction = await sequelize.transaction();
+  try {
+    const follower = await User.findByPk(followerId);
+    const following = await User.findByPk(followingId);
+
+    if (!follower || !following) {
+      throw new AppError("User not found", 404, "One or both users not found", false);
+    }
+
+    await follower.addFollowing(following, { transaction });
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    await transaction.rollback();
+    logger.error(`Error following user:`, error);
+    throw new AppError("Database Error", 500, "Error following user", true);
+  }
+};
+
+export const unfollowUser = async (followerId: string, followingId: string): Promise<boolean> => {
+  const transaction = await sequelize.transaction();
+  try {
+    const follower = await User.findByPk(followerId);
+    const following = await User.findByPk(followingId);
+
+    if (!follower || !following) {
+      throw new AppError("User not found", 404, "One or both users not found", false);
+    }
+
+    await follower.removeFollowing(following, { transaction });
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    await transaction.rollback();
+    logger.error(`Error unfollowing user:`, error);
+    throw new AppError("Database Error", 500, "Error unfollowing user", true);
+  }
+};
+
+export const getFollowers = async (userId: string): Promise<UserData[]> => {
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "User not found", false);
+    }
+
+    const followers = await user.getFollowers({
+      include: [{
+        model: UserDetails,
+        attributes: ['first_name', 'last_name']
+      }]
+    });
+
+    return followers;
+  } catch (error) {
+    logger.error(`Error getting followers:`, error);
+    throw new AppError("Database Error", 500, "Error getting followers", true);
+  }
+};
+
+export const getFollowing = async (userId: string): Promise<UserData[]> => {
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "User not found", false);
+    }
+
+    const following = await user.getFollowing({
+      include: [{
+        model: UserDetails,
+        attributes: ['first_name', 'last_name']
+      }]
+    });
+
+    return following;
+  } catch (error) {
+    logger.error(`Error getting following:`, error);
+    throw new AppError("Database Error", 500, "Error getting following list", true);
+  }
+};
