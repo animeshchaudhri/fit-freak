@@ -38,7 +38,7 @@ export type LeaderboardData = {
   first_name: string;
   last_name:string;
   calories_burned: number;
-  numebr_workouts: number;
+  number_workouts: number;
   rank: number;
 }
 

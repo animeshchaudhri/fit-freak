@@ -298,17 +298,18 @@ export const getLeaderBoardData = async (): Promise<allleaderboardData> => {
           user_id: sequelize.col('UserWorkouts.user_id')
         }
       }],
-      raw: false // Change to false to properly handle associations
+      raw: true
     });
+    console.log(workouts);
 
     const leaderboardData: LeaderboardData[] = workouts.map((workout, index) => ({
       first_name: workout.UserDetail?.first_name || '',
       last_name: workout.UserDetail?.last_name || '',
       calories_burned: workout.calories_burned,
-      numebr_workouts: workout.number_workouts, // Fixed typo matching type definition
+      number_workouts: workout.number_workouts, // Fixed typo here
       rank: index + 1
     }));
-
+    console.log(leaderboardData);
     return {
       leaderboardData
     };
@@ -354,7 +355,7 @@ export const getLeaderBoadofFriends = async (userId: string): Promise<allleaderb
     first_name: (workout as any)['user_details.first_name'],
     last_name: (workout as any)['user_details.last_name'],
     calories_burned: workout.calories_burned,
-    numebr_workouts: workout.number_workouts,
+    number_workouts: workout.number_workouts,
     rank: index + 1,
   }));
   return { leaderboardData: friendLeaderboard};

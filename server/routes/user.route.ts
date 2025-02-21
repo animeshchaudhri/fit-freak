@@ -526,7 +526,6 @@ router.post("/:userId/follow", authenticateUser(), validateRequest, followUserCo
 router.get("/friends-leaderboard", authenticateUser(), validateRequest, );
 
 
-// Add these routes
 /**
  * @swagger
  * /v1/user/follow/{userId}:
