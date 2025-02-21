@@ -48,6 +48,17 @@ export const validateUserRegister = [
           at least 1 lowercase, 1 uppercase, 1 number and 1 symbol`),
   ];
 
+export const validateWorkoutCreate=[
+  check("calories_burned")
+  .notEmpty()
+  .isInt({ min: 0, max: 10000 })
+  .withMessage("Calories burned must be between 0 and 10000"),
+
+  check("number_workouts")
+  .notEmpty()
+  .isInt({ min: 0, max: 1000 })
+  .withMessage("Calories burned must be between 0 and 10000"),
+] 
 export const validateUserCreate = [
   check("first_name")
     .notEmpty()

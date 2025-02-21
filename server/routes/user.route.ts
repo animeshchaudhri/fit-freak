@@ -2,8 +2,8 @@ import express from "express";
 import type { Router } from "express";
 import { validateUserLogin, validateUserRegister } from "../lib/validator";
 import { validateRequest } from "../utils/validateRequest";
-import { getUserDetailsController, loginUserController, registerUserController, userDetailsController, userInfoController } from "../controller/user/user.controller";
-import { validateUserCreate } from "../lib/validator/user/validator";
+import { getUserDetailsController, loginUserController, registerUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
+import { validateUserCreate, validateWorkoutCreate } from "../lib/validator/user/validator";
 import { authenticateUser } from "../middleware/Auth";
 import { userInfo } from "os";
 
@@ -301,5 +301,132 @@ router.post("/create-user", authenticateUser(), validateUserCreate, validateRequ
  *         description: Internal server error
  */
 router.get("/user-details", authenticateUser(), validateRequest, getUserDetailsController);
+
+
+/**
+ * @swagger
+ * /v1/user/user-workout:
+ *   post:
+ *     summary: Create a new workout for the user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - workout_type
+ *               - duration
+ *               - calories_burned
+ *             properties:
+ *               workout_type:
+ *                 type: string
+ *                 enum: [Cardio, Strength, Flexibility, Sports, HIIT, Other]
+ *                 description: Type of workout performed
+ *               duration:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 480
+ *                 description: Duration of workout in minutes
+ *               calories_burned:
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 5000
+ *                 description: Estimated calories burned during workout
+ *               notes:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Optional notes about the workout
+ *     responses:
+ *       201:
+ *         description: Workout created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     user_id:
+ *                       type: string
+ *                       format: uuid
+ *                     workout_type:
+ *                       type: string
+ *                     duration:
+ *                       type: integer
+ *                     calories_burned:
+ *                       type: integer
+ *                     notes:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+
+router.post("/user-workout", authenticateUser(),validateWorkoutCreate,  validateRequest, userWorkoutController);
+
+
+/**
+ * @swagger
+ * /v1/user/user-workout:
+ *   get:
+ *     summary: Get user's workout history
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Workout history retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+  *                         type: string
+ *                         format: uuid
+ *                       user_id:
+ *                         type: string
+ *                         format: uuid
+ *                       workout_type:
+ *                         type: string
+ *                       duration:
+ *                         type: integer
+ *                       calories_burned:
+ *                         type: integer
+ *                       notes:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/user-workout", authenticateUser(), validateRequest, userWorkoutGetController);
+
 
 export default router;

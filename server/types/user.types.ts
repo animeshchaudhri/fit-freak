@@ -23,6 +23,14 @@ export type userDetailedData = {
   fitness_goals?: string[];
   onboarding_completed: boolean;
 }
+export type allUserWorkoutData = {
+  userData: userWorkoutData[];
+}
+export type userWorkoutData = {
+  user_id: string;
+  calories_burned: number;
+  number_workouts: number;
+}
 
 export type authTokens = {
   accessToken: string;

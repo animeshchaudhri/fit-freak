@@ -6,8 +6,9 @@ import Password from "../../schema/user/password.schema";
 import RefreshToken from "../../schema/user/refreshToken.schema";
 import User from "../../schema/user/user.schema";
 import UserDetails from "../../schema/user/user_details.schema";
-import { UserData, userDetailedData, userLoginData } from "../../types/user.types";
+import { allUserWorkoutData, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import { v4 as uuidv4 } from 'uuid';
+import UserWorkouts from "../../schema/user/user_workouts.schema";
 
 
 export const getUserByEmail = async (
@@ -181,6 +182,61 @@ export const userDetailsCreateInDB = async (user: {
     throw new AppError("error creating user details", 500, "Something went wrong", true);
   }
 };
+
+export const getallworkoutData = async (userId: string): Promise<userWorkoutData| null> => {
+  try {
+    const userWorkouts = await UserWorkouts.findOne({
+      where: { user_id: userId },
+    });
+    return userWorkouts;
+  } catch (error) {
+    logger.error(`Error getting all workout data for user ID ${userId}:`, error);
+    throw new AppError(
+      "Database Error",
+      500,
+      "Error getting all workout data",
+      true
+    );
+  }
+}
+export const userWorkoutDetailsCreateInDB = async (user: {
+  user_id: string;
+  calories_burned: number;
+  number_workouts: number;
+}): Promise<userWorkoutData | null> => {
+
+
+
+  const transaction = await sequelize.transaction();
+  try {
+    logger.info(`Creating user workout details for ${user.user_id}`);
+
+    const userWorkoutDetails = await UserWorkouts.upsert({
+      id: uuidv4(),
+      user_id: user.user_id,
+      calories_burned: user.calories_burned,
+      number_workouts: user.number_workouts,
+    }, { transaction });
+    
+    await transaction.commit();
+    logger.info(`User workout details created for ${user.user_id}`);
+    return userWorkoutDetails[0];
+  } catch (error: unknown) {
+    await transaction.rollback();
+    if (error instanceof Error) {
+      const messages = (error as any).errors.map((err: any) => err.message);
+      throw new AppError(
+        "Validation Error",
+        400,
+        messages.join(", "),
+        false
+      );
+    }
+    throw new AppError("error creating user workout details", 500, "Something went wrong", true);
+  }
+}
+
+
 
 export const checkUserDetailsExist = async (userId: string): Promise<userDetailedData | null> => {
   try {
