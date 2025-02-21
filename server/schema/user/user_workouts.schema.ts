@@ -46,4 +46,10 @@ UserWorkouts.init(
   }
 )
 
+
+UserWorkouts.belongsTo(UserDetails, {
+  foreignKey: 'user_id',
+  targetKey: 'user_id',
+  as: 'UserDetails'
+});
 export default UserWorkouts 
