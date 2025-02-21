@@ -5,7 +5,7 @@ import { validateRequest } from "../utils/validateRequest";
 import { getUserDetailsController, leaderboardController, loginUserController, registerUserController, userDetailsController, userInfoController, userWorkoutController, userWorkoutGetController } from "../controller/user/user.controller";
 import { validateUserCreate, validateWorkoutCreate } from "../lib/validator/user/validator";
 import { authenticateUser } from "../middleware/Auth";
-import { userInfo } from "os";
+
 
 const router: Router = express.Router();
 
