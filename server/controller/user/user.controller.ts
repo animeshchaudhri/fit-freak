@@ -4,7 +4,7 @@ import {
     type RequestHandler,
     type Response,
   } from "express";
-import { getUserDetails, getUserInfo, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
+import { createUserWorkout, getUserDetails, getUserInfo, getUserWorkouts, loginUser, registerUser, userDetailsCreate } from "../../service/user/user.service";
 
 
 
@@ -96,6 +96,46 @@ export const userDetailsController: RequestHandler = async (
     next(error);
   }
 };
+
+export const userWorkoutController: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  try {
+    const useData= await createUserWorkout({
+      user_id: req.user.userId,
+      calories_burned: req.body.calories_burned,
+      number_workouts: req.body.number_workouts,
+    });
+    return res.status(201).json({
+      message: "User workout details created successfully",
+      data: useData,
+    });
+
+  } catch (error) {
+    next(error);
+  } 
+};
+
+export const userWorkoutGetController: RequestHandler = async (
+req: Request,
+res: Response,
+next: NextFunction
+) => {
+  try {
+    const userWorkout = await getUserWorkouts(req.user.userId);
+    return res.status(200).json({
+      message: "User workout details fetched successfully",
+      data: userWorkout,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
 
 export const getUserDetailsController: RequestHandler = async (
   req: Request,

@@ -1,6 +1,6 @@
 import { AppError } from "../../lib/appError";
-import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB } from "../../model/user/user.model";
-import { authTokens, UserData, userDetailedData, userLoginData } from "../../types/user.types";
+import { createUser, getPasswordById, getUserByEmail, getUserbyId,checkUserDetailsExist, updateOrSaveRefreshToken, userDetailsCreateInDB, userWorkoutDetailsCreateInDB, getallworkoutData } from "../../model/user/user.model";
+import { allUserWorkoutData, authTokens, UserData, userDetailedData, userLoginData, userWorkoutData } from "../../types/user.types";
 import commonErrorsDictionary from "../../utils/error/commonErrors";
 import { hashPassword } from "../../utils/password";
 import { v4 as uuid } from "uuid";
@@ -161,7 +161,37 @@ export const getUserInfo = async (userId: string): Promise<userLoginData | null>
     const userDetails = await userDetailsCreateInDB(user);
     return userDetails; 
   };
+export const getUserWorkouts= async (userId: string): Promise<userWorkoutData | null> => {
+
+  const user = await getUserbyId(userId);
+  if (!user) {
+    throw new AppError("User not found", 404, "User not found", false);
+  }
+  const userWorkouts = await getallworkoutData(userId);
+  return  userWorkouts;
+
+}
+
+
+ export const createUserWorkout = async (user: {
+    user_id: string;
+    calories_burned: number;
+    number_workouts: number;
+  }): Promise<userWorkoutData | null> => {
+    const userExists = await getUserbyId(user.user_id);
+    if (!userExists)
+      throw new AppError(
+        "User not found",
+        404,
+        "User not found",
+        false
+      );
+
+    const userDetails = await userWorkoutDetailsCreateInDB(user);
   
+
+    return userDetails;
+  };
   export const getUserDetails = async (userId: string): Promise<userDetailedData | null> => {
     try {
       const userDetails = await checkUserDetailsExist(userId);

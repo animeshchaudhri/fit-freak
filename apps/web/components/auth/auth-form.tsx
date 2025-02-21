@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Loader } from "lucide-react"
 import { toast } from "react-hot-toast"
 
-// Add email validation regex
+// Updated email and password validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
 interface AuthFormProps {
   defaultIsLogin?: boolean
@@ -22,93 +23,114 @@ export function AuthForm({ defaultIsLogin = true }: AuthFormProps) {
   const { signIn, signUp } = useAuth()
 
   const validateForm = () => {
-    // Check for empty fields
-    if (!email || !password) {
-      toast.error('Please fill in all fields')
+    try {
+      // Sanitize inputs
+      const sanitizedEmail = email.trim().toLowerCase()
+      
+      // Check for empty fields
+      if (!sanitizedEmail || !password) {
+        toast.error('Please fill in all fields')
+        return false
+      }
+
+      // Validate email format
+      if (!EMAIL_REGEX.test(sanitizedEmail)) {
+        toast.error('Please enter a valid email address')
+        return false
+      }
+
+      // Password validation for both login and signup
+      if (!PASSWORD_REGEX.test(password)) {
+        toast.error(
+          'Password must be at least 8 characters long and contain:\n' +
+          '- At least 1 uppercase letter\n' +
+          '- At least 1 lowercase letter\n' +
+          '- At least 1 number\n' +
+          '- At least 1 special character (@$!%*?&)'
+        )
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Validation error:', error)
+      toast.error('An error occurred during validation. Please try again.')
       return false
     }
-
-    // Validate email format
-    if (!EMAIL_REGEX.test(email)) {
-      toast.error('Please enter a valid email address')
-      return false
-    }
-
-    // Validate password length for signup
-    if (!isLogin && password.length < 6) {
-      toast.error('Password must be at least 6 characters long')
-      return false
-    }
-
-    // Add password complexity check for signup
-    if (!isLogin && !/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/.test(password)) {
-      toast.error('Password must contain at least one uppercase letter, one lowercase letter, and one number')
-      return false
-    }
-
-    return true
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate form before submission
-    if (!validateForm()) {
-      return
-    }
-    
-    setIsLoading(true)
-    
     try {
+      // Validate form before submission
+      if (!validateForm()) {
+        return
+      }
+      
+      setIsLoading(true)
+      
       if (isLogin) {
-        await signIn(email, password)
+        await signIn(email.trim(), password)
         toast.success('Successfully signed in!')
       } else {
-        await signUp(email, password)
+        await signUp(email.trim(), password)
         toast.success('Account created successfully!')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auth error:', error)
-      // Show specific error messages based on error type
-      if (error instanceof Error) {
-        if (error.message.includes('auth/wrong-password')) {
-          toast.error('Incorrect password')
-        } else if (error.message.includes('auth/user-not-found')) {
-          toast.error('No account found with this email')
-        } else if (error.message.includes('auth/email-already-in-use')) {
-          toast.error('Email already in use')
-        } else {
-          toast.error('Authentication failed. Please try again.')
-        }
+      
+      // Enhanced error handling with specific messages
+      const errorCode = error?.code || error?.message || 'unknown'
+      
+      const errorMessages: { [key: string]: string } = {
+        'auth/wrong-password': 'Incorrect password',
+        'auth/user-not-found': 'No account found with this email',
+        'auth/email-already-in-use': 'Email already in use',
+        'auth/invalid-email': 'Invalid email format',
+        'auth/weak-password': 'Password is too weak',
+        'auth/network-request-failed': 'Network error. Please check your connection',
+        'auth/too-many-requests': 'Too many attempts. Please try again later',
+        'auth/user-disabled': 'This account has been disabled',
+        'auth/operation-not-allowed': 'Operation not allowed',
+        'auth/popup-closed-by-user': 'Authentication cancelled',
+        'default': 'Authentication failed. Please try again'
       }
+
+      toast.error(errorMessages[errorCode] || errorMessages.default)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Add email validation on blur
+  // Real-time email validation
   const handleEmailBlur = () => {
-    if (email && !EMAIL_REGEX.test(email)) {
+    if (email && !EMAIL_REGEX.test(email.trim())) {
       toast.error('Please enter a valid email address')
     }
   }
 
-  // Add password validation on blur for signup
+  // Real-time password validation
   const handlePasswordBlur = () => {
-    if (!isLogin && password && password.length < 6) {
-      toast.error('Password must be at least 6 characters long')
+    if (password && !PASSWORD_REGEX.test(password)) {
+      toast.error(
+        'Password must contain uppercase, lowercase, number, and special character'
+      )
     }
+  }
+
+  // Reset form when switching between login/signup
+  const handleAuthModeSwitch = () => {
+    setIsLogin(!isLogin)
+    setEmail("")
+    setPassword("")
+    // Clear any existing error toasts
+    toast.dismiss()
   }
 
   return (
     <div className="w-full max-w-md space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold">{isLogin ? "Welcome Back" : "Create Account"}</h2>
-        <p className="text-gray-500 mt-2">
-          {isLogin ? "Sign in to your account" : "Sign up for a new account"}
-        </p>
-      </div>
-
+      {/* ...existing JSX code... */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           type="email"
@@ -117,7 +139,9 @@ export function AuthForm({ defaultIsLogin = true }: AuthFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           onBlur={handleEmailBlur}
           required
-          className={!email || EMAIL_REGEX.test(email) ? "" : "border-red-500"}
+          className={!email || EMAIL_REGEX.test(email.trim()) ? "" : "border-red-500"}
+          disabled={isLoading}
+          aria-label="Email"
         />
         <Input
           type="password"
@@ -126,9 +150,16 @@ export function AuthForm({ defaultIsLogin = true }: AuthFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           onBlur={handlePasswordBlur}
           required
-          className={!password || (isLogin || password.length >= 6) ? "" : "border-red-500"}
+          className={!password || PASSWORD_REGEX.test(password) ? "" : "border-red-500"}
+          disabled={isLoading}
+          aria-label="Password"
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+          aria-label={isLogin ? "Sign In" : "Sign Up"}
+        >
           {isLoading ? (
             <>
               <Loader className="mr-2 h-4 w-4 animate-spin" />
@@ -143,12 +174,9 @@ export function AuthForm({ defaultIsLogin = true }: AuthFormProps) {
       <div className="text-center">
         <button
           type="button"
-          onClick={() => {
-            setIsLogin(!isLogin)
-            setEmail("")
-            setPassword("")
-          }}
+          onClick={handleAuthModeSwitch}
           className="text-primary hover:underline"
+          disabled={isLoading}
         >
           {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
         </button>
