@@ -12,7 +12,7 @@ This project is using what I'm calling the "PRRTTES" stack
 - **E**xpress.js for backend
 - **S**equelize for ORM
 
-[Live Demo](https://fit-freak-pi.vercel.app/)
+
 
 ## Platforms
 - 🌐 Web application
@@ -59,6 +59,9 @@ This is a monorepo containing multiple applications:
 - 🖥️ Native performance with Tauri
 - 🔒 Secure authentication with JWT
 
+## System design and Db schema
+https://app.eraser.io/workspace/8JIuhmzNq0syw9oCVeac?origin=share
+
 ## Tech Stack
 
 ### Frontend
@@ -67,6 +70,14 @@ This is a monorepo containing multiple applications:
 - Tailwind CSS for styling
 - React Server Components
 - Lucide icons
+- zustand state management
+  
+### Backend
+- Express.js server
+- PostgreSQL database
+- Sequelize ORM
+- JWT authentication
+- REST API
 
 ### Backend
 - Express.js server
