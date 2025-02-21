@@ -10,7 +10,8 @@ import "@tensorflow/tfjs-backend-webgl"
 import "./WorkoutDiv.css"
 import { Button } from "../ui/button"
 import { ArrowLeft, Loader } from "lucide-react"
-
+import api from '@/lib/api-client'
+import { toast } from "sonner"
 export function WorkoutView({ workout, onComplete }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -23,6 +24,7 @@ export function WorkoutView({ workout, onComplete }) {
   const [detector, setDetector] = useState(null);
   const [reps, setReps] = useState(0);
   const repCounted = useRef(false);
+  const totalrep =0;
   const animationRef = useRef(null);
   
   // Exercise state
@@ -32,6 +34,7 @@ export function WorkoutView({ workout, onComplete }) {
   const [exerciseColor, setExerciseColor] = useState("#4361ee");
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [feedback, setFeedback] = useState({ message: "Get ready to start your workout!", type: "default" });
+  const [totalReps, setTotalReps] = useState(0);
   
   // Get current exercise name
   const currentExercise = exercises[currentExerciseIndex];
@@ -75,7 +78,22 @@ export function WorkoutView({ workout, onComplete }) {
       }
     }
   };
-
+  const saveWorkoutData = async () => {
+    try {
+      const workoutData = {
+        calories_burned: totalReps * 0.5, // Using total reps for calorie calculation
+        number_workouts: workout?.number_workouts ? workout.number_workouts + 1 : 1,
+      }
+  
+      await api.post('/v1/user/user-workout', workoutData);
+   
+  
+      toast.success('Workout data saved successfully!');
+    } catch (error) {
+      console.error('Error saving workout data:', error);
+      toast.error('Failed to save workout data');
+    }
+  }
   useEffect(() => {
     const initializeTF = async () => {
       try {
@@ -136,13 +154,16 @@ export function WorkoutView({ workout, onComplete }) {
 
   useEffect(() => {
     if (reps >= 10) {
-       console.log("Audio play error:");
+      // Update total reps when exercise is completed
+      setTotalReps(prevTotal => prevTotal + reps);
       
       if (currentExerciseIndex < exercises.length - 1) {
         setCurrentExerciseIndex(prev => prev + 1);
       } else {
         setWorkoutComplete(true);
         setShowCompletionAnimation(true);
+        saveWorkoutData();
+      
         console.log("Audio play error:", )
         
        
@@ -205,6 +226,7 @@ export function WorkoutView({ workout, onComplete }) {
   const resetWorkout = () => {
     setCurrentExerciseIndex(0);
     setReps(0);
+    setTotalReps(0);
     setWorkoutComplete(false);
     setFeedback({ 
       message: "Ready to start a new workout! Click the button to begin.", 
@@ -401,6 +423,8 @@ export function WorkoutView({ workout, onComplete }) {
     };
 
     runDetection();
+  
+      
   };
 
   if (isLoading) {
@@ -538,6 +562,7 @@ export function WorkoutView({ workout, onComplete }) {
             <button 
               onClick={() => {
                 setShowCompletionAnimation(false);
+      
                 resetWorkout();
               }}
               className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:transform hover:-translate-y-1"

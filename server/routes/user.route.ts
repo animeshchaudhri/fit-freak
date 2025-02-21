@@ -479,4 +479,73 @@ router.get("/user-workout", authenticateUser(), validateRequest, userWorkoutGetC
  *         description: Internal server error
  */
 router.get("/leaderboard", authenticateUser(), validateRequest, leaderboardController);
+
+// /**
+//  * @swagger
+//  * /v1/user/{userId}/follow:
+//  *   post:
+//  *     summary: Follow a user
+//  *     tags: [Users]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     parameters:
+//  *       - in: path
+//  *         name: userId
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *           format: uuid
+//  *     responses:
+//  *       200:
+//  *         description: Successfully followed user
+//  *       401:
+//  *         description: Unauthorized
+//  *       404:
+//  *         description: User not found
+//  */
+// router.post("/:userId/follow", authenticateUser(), validateRequest, followUserController);
+
+// /**
+//  * @swagger
+//  * /v1/user/friends-leaderboard:
+//  *   get:
+//  *     summary: Get leaderboard rankings for friends only
+//  *     tags: [Users]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     responses:
+//  *       200:
+//  *         description: Friends leaderboard retrieved successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 message:
+//  *                   type: string
+//  *                 data:
+//  *                   type: array
+//  *                   items:
+//  *                     type: object
+//  *                     properties:
+//  *                       user:
+//  *                         type: object
+//  *                         properties:
+//  *                           id:
+//  *                             type: string
+//  *                           first_name:
+//  *                             type: string
+//  *                           last_name:
+//  *                             type: string
+//  *                           calories_burned:
+//  *                             type: number
+//  *                           number_workouts:
+//  *                             type: number
+//  *                       rank:
+//  *                         type: number
+//  *       401:
+//  *         description: Unauthorized
+//  */
+// router.get("/friends-leaderboard", authenticateUser(), validateRequest, friendsLeaderboardController);
+
 export default router;

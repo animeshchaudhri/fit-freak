@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { clearTokens, getAccessToken } from "../utils/tokenManager";
 import { getNewAccessToken, isTokenExpired } from "../utils/jwtUtils";
 
-const axiosInstance: AxiosInstance = axios.create({
+export const axiosInstance: AxiosInstance = axios.create({
   baseURL: "http://localhost:4000",
   timeout: 120000 // 2 minutes
 });
