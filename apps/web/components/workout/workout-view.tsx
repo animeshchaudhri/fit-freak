@@ -136,14 +136,14 @@ export function WorkoutView({ workout, onComplete }) {
 
   useEffect(() => {
     if (reps >= 10) {
-       console.log("Audio play error:", err);
+       console.log("Audio play error:");
       
       if (currentExerciseIndex < exercises.length - 1) {
         setCurrentExerciseIndex(prev => prev + 1);
       } else {
         setWorkoutComplete(true);
         setShowCompletionAnimation(true);
-        console.log("Audio play error:", err)
+        console.log("Audio play error:", )
         
        
         setTimeout(() => {
@@ -154,7 +154,7 @@ export function WorkoutView({ workout, onComplete }) {
       setReps(0);
     }
     else if (reps > 0 && reps % 5 === 0) {
-      console.log("Audio play error:", err);
+      console.log("Audio play error:",);
     }
   }, [reps, currentExerciseIndex, exercises.length]);
 
