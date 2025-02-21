@@ -15,6 +15,7 @@ const navItems = [
   { icon: Trophy, label: "Instant Workout", href: routes.challenges },
   { icon: Video, label: "Live", href: routes.live },
   { icon: User, label: "Profile", href: routes.profile },
+  { icon: User, label: "Start New Challenge", href: routes.startchallenge },
   { icon: User, label: "Dashboard", href: routes.dashboard },
 ]
 
